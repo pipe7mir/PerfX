@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Card from '../components/ui/GlassCard';
 import Modal from '../components/ui/Modal';
-import { db } from '../lib/supabase';
+import { api } from '../services/api';
 import { FileText, AlertTriangle, CheckCircle, XCircle, Eye } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 
@@ -11,7 +11,7 @@ export default function AuditPage() {
 
   const loadEvaluations = async () => {
     try {
-      const data = await db.evaluations.list();
+      const data = await api.evaluations.list();
       setEvaluations(data);
     } catch (error) {
       console.error('Error loading evaluations:', error);

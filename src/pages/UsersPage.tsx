@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { UserCenteredForm } from '../components/users/UserCenteredForm';
 import toast from 'react-hot-toast';
-import { db } from '../lib/supabase';
+import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useConfirm } from '../context/ConfirmContext';
 import { ShieldCheck, Users, Settings, Activity, Edit3, Trash2 } from 'lucide-react';
@@ -23,7 +23,7 @@ export default function UsersPage() {
 
   const loadUsers = async () => {
     try {
-      const data = await db.users.list();
+      const data = await api.users.list();
       setUsers(data);
     } catch (error) {
       console.error(error);
@@ -37,10 +37,10 @@ export default function UsersPage() {
   const handleSaveUser = async (userData: Partial<any>) => {
     try {
       if (editingUser?.id) {
-        await db.users.update(editingUser.id, userData);
+        await api.users.update(editingUser.id, userData);
         toast.success('Perfil actualizado con éxito');
       } else {
-        await db.users.insert({ ...userData, is_active: true });
+        await api.users.insert({ ...userData, is_active: true });
         toast.success('Analista registrado con éxito');
       }
       loadUsers(); // Refrescar lista
@@ -71,7 +71,7 @@ export default function UsersPage() {
 
     if (isConfirmed) {
       try {
-        await db.users.delete(id);
+        await api.users.delete(id);
         toast.success('Usuario eliminado permanentemente');
         loadUsers();
       } catch (error: any) {

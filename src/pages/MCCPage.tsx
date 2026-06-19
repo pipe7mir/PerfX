@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Card from '../components/ui/GlassCard';
 import { MccCenteredForm } from '../components/fraud/MccCenteredForm';
 import toast from 'react-hot-toast';
-import { db } from '../lib/supabase';
+import { api } from '../services/api';
 import type { Mcc } from '../types';
 import { useMCC } from '../context/MCCContext';
 import { Search, List, Plus } from 'lucide-react';
@@ -15,7 +15,7 @@ export default function MCCPage() {
 
   const handleSaveMcc = async (mccData: Partial<Mcc>) => {
     try {
-      await db.mcc.insert(mccData as Mcc);
+      await api.mcc.insert(mccData as Mcc);
       toast.success('MCC guardado en Supabase');
     } catch (error: any) {
       console.error(error);

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, X, User, Camera, Mail, ShieldAlert } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { db } from '../../lib/supabase';
+import { api } from '../../services/api';
 import type { UserRole, User as UserType } from '../../types';
 
 interface UserCenteredFormProps {
@@ -72,11 +72,11 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
       }
 
       if (avatarFile) {
-        finalAvatarUrl = await db.storage.uploadAvatar(avatarFile);
+        finalAvatarUrl = await api.storage.uploadAvatar(avatarFile);
       }
       
       if (coverFile) {
-        finalCoverUrl = await db.storage.uploadCover(coverFile);
+        finalCoverUrl = await api.storage.uploadCover(coverFile);
       }
 
       let currentEmail = email;

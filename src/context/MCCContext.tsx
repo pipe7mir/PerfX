@@ -31,8 +31,8 @@ export function MCCProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        const { db } = await import('../lib/supabase');
-        const remote = await db.mcc.list();
+        const { api } = await import('../services/api');
+        const remote = await api.mcc.list();
         if (remote.length > 0) {
           setMccs(remote);
           await offlineDB.saveMCCs(remote);
@@ -45,10 +45,10 @@ export function MCCProvider({ children }: { children: ReactNode }) {
   const persist = useCallback(async (updated: MCC[]) => {
     await offlineDB.saveMCCs(updated);
     try {
-      const { db } = await import('../lib/supabase');
+      const { api } = await import('../services/api');
       for (const mcc of updated) {
-        await db.mcc.findByCode(mcc.code).then((existing: any) => {
-          if (!existing) db.mcc.insert(mcc);
+        await api.mcc.findByCode(mcc.code).then((existing: any) => {
+          if (!existing) api.mcc.insert(mcc);
         });
       }
     } catch { /* offline */ }

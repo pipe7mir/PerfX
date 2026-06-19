@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { db } from '../lib/supabase';
+import { api } from '../services/api';
 import toast from 'react-hot-toast';
 
 export default function ChangePasswordPage() {
@@ -40,7 +40,7 @@ export default function ChangePasswordPage() {
 
     setLoading(true);
     try {
-      await db.users.update(user.id, { password: newPassword });
+      await api.users.update(user.id, { password: newPassword });
       
       // Update local storage user state to remove mustChangePassword
       const updatedUser = { ...user, mustChangePassword: false };

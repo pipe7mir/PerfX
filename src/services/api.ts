@@ -1,4 +1,5 @@
-import type { EvaluationInput, EvaluationResult, RuleConfig, User } from '../types';
+import type { EvaluationInput, EvaluationResult, RuleConfig, User, Mcc } from '../types';
+import { uploadToCloudinary } from '../lib/cloudinary';
 
 const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL ?? 'http://localhost:5000';
 
@@ -157,4 +158,71 @@ export const api = {
       });
     }
   },
+
+  mcc: {
+    async list(): Promise<Mcc[]> {
+      return request('/api/v1/mcc');
+    },
+    async insert(mcc: Mcc): Promise<void> {
+      await request('/api/v1/mcc', {
+        method: 'POST',
+        body: JSON.stringify(mcc),
+      });
+    },
+    async findByCode(code: string): Promise<Mcc | null> {
+      return request<Mcc | null>(`/api/v1/mcc/${code}`).catch(() => null);
+    }
+  },
+
+  users: {
+    async list(): Promise<User[]> {
+      return request('/api/v1/users');
+    },
+    async insert(user: Partial<User>): Promise<void> {
+      await request('/api/v1/users', {
+        method: 'POST',
+        body: JSON.stringify(user),
+      });
+    },
+    async update(id: string, updates: Partial<User>): Promise<void> {
+      await request(`/api/v1/users/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+    },
+    async delete(id: string): Promise<void> {
+      await request(`/api/v1/users/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    async findByEmail(email: string): Promise<User | null> {
+      // Find locally from list to avoid a new specific endpoint, or just assume backend has a way.
+      // But we can just use the list for now, or assume findByEmail is mostly handled by login.
+      // Actually let's just fetch all and filter since it's an admin dashboard.
+      const users = await request<User[]>('/api/v1/users');
+      return users.find(u => u.email === email) || null;
+    }
+  },
+
+  evaluations: {
+    async list(): Promise<any[]> {
+      return request('/api/v1/evaluations');
+    },
+    async store(record: any): Promise<void> {
+      // Evaluations are automatically stored by the evaluate endpoint, but if the client needs to manually store one:
+      await request('/api/v1/evaluaciones', {
+        method: 'POST',
+        body: JSON.stringify(record),
+      });
+    }
+  },
+
+  storage: {
+    async uploadAvatar(file: File): Promise<string> {
+      return uploadToCloudinary(file);
+    },
+    async uploadCover(file: File): Promise<string> {
+      return uploadToCloudinary(file);
+    }
+  }
 };
