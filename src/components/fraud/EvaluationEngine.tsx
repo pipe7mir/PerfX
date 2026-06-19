@@ -1,0 +1,688 @@
+import { useState, useEffect, useRef } from 'react';
+import { Zap, ShieldCheck, Search, Building2, CreditCard, Activity, CheckCircle, AlertTriangle, XCircle, Plus, Database, MessageSquareText, TrendingUp, PieChart as PieChartIcon } from 'lucide-react';
+import gsap from 'gsap';
+import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { api } from '../../services/api';
+import type { EvaluationInput, EvaluationResult, MCC } from '../../types';
+import { useMCC } from '../../context/MCCContext';
+
+// Funciones auxiliares eliminadas al ser inputs libres
+
+const getHumanExplanation = (result: EvaluationResult) => {
+  const hasContact = result.historicalFrequency > 0;
+  const maxFmt = result.historicalMax > 0
+    ? ` (máx. histórico: $${result.historicalMax.toLocaleString('es-CO')})`
+    : '';
+  const contactText = hasContact 
+    ? ` El historial de contacto previo positivo${maxFmt} ha ayudado a mitigar el perfil de riesgo.`
+    : ' La falta de contacto previo con este comercio eleva la incertidumbre de la operación.';
+
+  if (result.verdict === 'APROBAR_TRX') {
+    return `La transacción muestra un comportamiento habitual y no presenta señales de alerta.${hasContact ? contactText : ''} El riesgo calculado es suficientemente bajo como para procesar el pago de inmediato, ofreciendo una experiencia sin fricciones al cliente.`;
+  } else if (result.verdict === 'CONTACTAR_CLIENTE') {
+    const mainReasons = result.triggeredRules.filter(r => r.score > 0).map(r => r.ruleName.toLowerCase()).join(' y ');
+    return `Se ha detectado un nivel de riesgo inusual (Score: ${result.riskScore}), impulsado principalmente por: ${mainReasons || 'factores anómalos'}.${contactText} Sugerimos pausar el proceso y contactar al cliente para confirmar su identidad y la legitimidad de esta compra.`;
+  } else {
+    return `Alerta crítica de fraude (Score: ${result.riskScore}). Existen múltiples indicadores de alto riesgo que comprometen la seguridad de la operación.${contactText} Se recomienda rechazar la transacción inmediatamente y no contactar al cliente, ya que podría tratarse de un ataque automatizado o de suplantación confirmada.`;
+  }
+};
+
+export default function EvaluationEngine() {
+  const { mccs, lookupFullCatalog, suggestFullCatalog, addMCC } = useMCC();
+
+  // State
+  const [transactionType, setTransactionType] = useState<'POS' | 'INT'>('POS');
+  const [hasContact, setHasContact] = useState(false);
+  const [priorContactCount, setPriorContactCount] = useState<string>('1');
+  const [priorContactMaxValue, setPriorContactMaxValue] = useState<string>('0');
+
+  const [merchantName, setMerchantName] = useState('');
+  const [mccSearch, setMccSearch] = useState('');
+  const [selectedMccId, setSelectedMccId] = useState('');
+  
+  const [currentTrxValue, setCurrentTrxValue] = useState<string>('');
+  const [currency, setCurrency] = useState<'COP' | 'USD' | 'EUR'>('COP');
+  const [trxCount24h, setTrxCount24h] = useState<string>('1');
+  
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<EvaluationResult & { transactionId?: string; processingTimeMs?: number } | null>(null);
+  const [error, setError] = useState('');
+  const [addedMessage, setAddedMessage] = useState('');
+
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (result && resultRef.current) {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+
+      gsap.fromTo(
+        resultRef.current,
+        { opacity: 0, y: 40, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "back.out(1.2)" }
+      );
+    }
+  }, [result]);
+
+  // Auto-complete simple logic
+  const filteredMccs = mccs.filter(m => 
+    m.code.includes(mccSearch) || m.description.toLowerCase().includes(mccSearch.toLowerCase())
+  ).slice(0, 5);
+
+  // Full catalog suggestions when active catalog has no matches
+
+  const fullSuggestion = mccSearch && !selectedMccId && filteredMccs.length === 0
+    ? lookupFullCatalog(mccSearch)
+    : undefined;
+  const fullSuggestions = mccSearch && !selectedMccId && filteredMccs.length === 0 && !fullSuggestion
+    ? suggestFullCatalog(mccSearch)
+    : [];
+
+  const handleAddToCatalog = () => {
+    if (!fullSuggestion) return;
+    const code = mccSearch;
+    const desc = fullSuggestion;
+    addMCC(code, desc, 30);
+    setSelectedMccId(code);
+    setMccSearch(`${code} - ${desc}`);
+    setAddedMessage(`MCC ${code} agregado al catálogo local`);
+    setTimeout(() => setAddedMessage(''), 3000);
+  };
+
+  const getRiskColor = (mcc: MCC) => {
+    // Para simplificar, asumimos que si el score base es alto, el color es rojo
+    if (mcc.base_risk_score >= 70) return 'text-red-600 bg-red-50 border-red-200';
+    if (mcc.base_risk_score >= 30) return 'text-amber-600 bg-amber-50 border-amber-200';
+    return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+  };
+  
+  const getRiskLabel = (mcc: MCC) => {
+    if (mcc.base_risk_score >= 70) return 'HIGH';
+    if (mcc.base_risk_score >= 30) return 'MEDIUM';
+    return 'LOW';
+  };
+
+  const handleEvaluate = async () => {
+    setError('');
+    if (!selectedMccId) {
+      setError('Debes seleccionar un MCC válido');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const baseValue = parseFloat(currentTrxValue) || 0;
+      let finalValueCOP = baseValue;
+      if (currency === 'USD') finalValueCOP = baseValue * 4000;
+      if (currency === 'EUR') finalValueCOP = baseValue * 4400;
+
+      const maxHistValue = parseFloat(priorContactMaxValue) || 0;
+      let finalMaxHistCOP = maxHistValue;
+      if (currency === 'USD') finalMaxHistCOP = maxHistValue * 4000;
+      if (currency === 'EUR') finalMaxHistCOP = maxHistValue * 4400;
+
+      const payload: EvaluationInput = {
+        transactionType,
+        hasPriorContact: hasContact,
+        priorContactCount: hasContact ? (parseInt(priorContactCount, 10) || 1) : 0,
+        priorContactMaxValue: hasContact ? finalMaxHistCOP : 0,
+        mccCode: selectedMccId,
+        currentTrxValue: finalValueCOP,
+        trxCountLast24h: parseInt(trxCount24h, 10) || 1,
+      };
+      const res = await api.evaluate(payload);
+      setResult(res);
+    } catch (err: any) {
+      setError(err.message || 'Error al conectar con el motor de evaluación');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
+      <div className="grid lg:grid-cols-2 gap-6">
+        
+        {/* COLUMNA IZQUIERDA: Perfil Histórico */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-8 h-fit">
+          <div>
+            <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-widest">
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              Contexto de la Operación
+            </h3>
+            
+            <div className="space-y-8">
+              {/* Tipo de Transacción (Segmented Control) */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-3">Canal Transaccional</label>
+                <div className="flex bg-slate-100/80 p-1.5 rounded-2xl">
+                  <button
+                    onClick={() => setTransactionType('POS')}
+                    className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
+                      transactionType === 'POS' 
+                        ? 'bg-white text-blue-600 shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Físico (POS)
+                  </button>
+                  <button
+                    onClick={() => setTransactionType('INT')}
+                    className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
+                      transactionType === 'INT' 
+                        ? 'bg-white text-blue-600 shadow-sm' 
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Internet (INT)
+                  </button>
+                </div>
+              </div>
+
+              {/* Contacto Previo (Switch) */}
+              <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${hasContact ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'}`}>
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800">¿Contacto previo con el comercio?</h4>
+                    <p className="text-xs text-slate-500 font-medium">Mitiga el riesgo de suplantación</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setHasContact(!hasContact)}
+                  className={`w-12 h-6 rounded-full transition-colors relative ${hasContact ? 'bg-blue-600' : 'bg-slate-300'}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${hasContact ? 'translate-x-7' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              {/* Conditional Prior Contact Metrics */}
+              {hasContact && (
+                <div className="grid grid-cols-2 gap-4 mt-2 bg-blue-50/50 p-5 rounded-2xl border border-blue-100 animate-in fade-in slide-in-from-top-2">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-2">Frecuencia Histórica</label>
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Ej: 5 veces"
+                      value={priorContactCount}
+                      onChange={(e) => setPriorContactCount(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-2">Valor Máx Histórico ({currency})</label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Ej: 150000"
+                      value={priorContactMaxValue}
+                      onChange={(e) => setPriorContactMaxValue(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* COLUMNA DERECHA: Datos de la Transacción Actual */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-8">
+          <div>
+            <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-widest">
+              <span className="w-2 h-2 rounded-full bg-indigo-500" />
+              Datos de la Transacción
+            </h3>
+            
+            <div className="space-y-6">
+              
+              {/* Nombre del Comercio */}
+              <div>
+                <div className="flex justify-between items-end mb-2">
+                  <label className="block text-sm font-semibold text-slate-600">Nombre del Comercio</label>
+                  <span className="text-xs text-slate-400 font-medium">(Opcional)</span>
+                </div>
+                <div className="relative">
+                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Ej: Amazon, Uber, Comercio Local..."
+                    value={merchantName}
+                    onChange={(e) => setMerchantName(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Búsqueda de MCC */}
+              <div className="relative z-20">
+                <label className="block text-sm font-semibold text-slate-600 mb-2">Código MCC</label>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input 
+                    type="text" 
+                    placeholder="Buscar código o industria..."
+                    value={mccSearch}
+                    onChange={(e) => {
+                      setMccSearch(e.target.value);
+                      setSelectedMccId('');
+                    }}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                  />
+                  {selectedMccId && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <CheckCircle className="w-5 h-5 text-emerald-500" />
+                    </div>
+                  )}
+                </div>
+                
+                {/* Autocomplete Dropdown + Full Catalog Suggestions */}
+                {mccSearch && !selectedMccId && (
+                  <div className="absolute w-full mt-2 bg-white border border-slate-100 shadow-xl rounded-2xl overflow-hidden z-50">
+                    {filteredMccs.length > 0 ? (
+                      filteredMccs.map(mcc => (
+                        <button
+                          key={mcc.code}
+                          onClick={() => {
+                            setSelectedMccId(mcc.code);
+                            setMccSearch(`${mcc.code} - ${mcc.description}`);
+                          }}
+                          className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-left"
+                        >
+                          <div>
+                            <p className="text-sm font-bold text-slate-800">{mcc.code}</p>
+                            <p className="text-xs text-slate-500 font-medium">{mcc.description}</p>
+                          </div>
+                          <span className={`text-[10px] font-bold px-2 py-1 rounded-md border ${getRiskColor(mcc)}`}>
+                            {getRiskLabel(mcc)}
+                          </span>
+                        </button>
+                      ))
+                    ) : fullSuggestion ? (
+                      <div className="p-4 border-b border-slate-50">
+                        <p className="text-xs text-slate-400 font-medium mb-1">Código encontrado en catálogo Mastercard</p>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-bold text-slate-800">{mccSearch}</p>
+                            <p className="text-xs text-slate-500 font-medium">{fullSuggestion}</p>
+                          </div>
+                          <button
+                            onClick={handleAddToCatalog}
+                            className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl transition-colors"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            Agregar
+                          </button>
+                        </div>
+                      </div>
+                    ) : fullSuggestions.length > 0 ? (
+                      <div>
+                        <p className="px-4 pt-3 pb-1 text-xs text-slate-400 font-medium">Sugerencias del catálogo Mastercard</p>
+                        {fullSuggestions.map(s => (
+                          <button
+                            key={s.code}
+                            onClick={() => {
+                              setMccSearch(s.code);
+                              const found = lookupFullCatalog(s.code);
+                              if (found) {
+                                setSelectedMccId(s.code);
+                                setMccSearch(`${s.code} - ${found}`);
+                              }
+                            }}
+                            className="w-full flex items-center justify-between p-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-left pl-8"
+                          >
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">{s.code}</p>
+                              <p className="text-xs text-slate-500 font-medium">{s.description}</p>
+                            </div>
+                            <span className="text-[10px] font-bold px-2 py-1 rounded-md border text-slate-400 bg-slate-50 border-slate-200">
+                              REF
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-sm text-slate-500 text-center font-medium">No se encontraron resultados</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Valor TRX */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" /> Monto de Transacción
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Ej: 50000"
+                      value={currentTrxValue}
+                      onChange={(e) => setCurrentTrxValue(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-8 pr-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                    />
+                  </div>
+                  <select 
+                    value={currency} 
+                    onChange={(e) => setCurrency(e.target.value as any)}
+                    className="bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
+                  >
+                    <option value="COP">COP</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </div>
+                {currency !== 'COP' && (
+                  <p className="text-xs text-slate-500 mt-2 font-medium">
+                    * Se convertirá a COP para la evaluación paramétrica del motor.
+                  </p>
+                )}
+              </div>
+
+              {/* Frecuencia TRX */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
+                  <Activity className="w-4 h-4" /> Frecuencia (Últimas 24h)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Número de transacciones en 24h"
+                  value={trxCount24h}
+                  onChange={(e) => setTrxCount24h(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                />
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {addedMessage && (
+        <div className="bg-emerald-50 text-emerald-700 p-4 rounded-2xl text-sm font-bold text-center border border-emerald-200 flex items-center justify-center gap-2 animate-in slide-in-from-top-2 fade-in duration-300">
+          <CheckCircle className="w-5 h-5" />
+          {addedMessage}
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-bold text-center border border-red-100 flex items-center justify-center gap-2">
+          <AlertTriangle className="w-5 h-5" />
+          {error}
+        </div>
+      )}
+
+      {/* Botón de Acción Principal */}
+      <div className="flex justify-center pt-4">
+        <button
+          onClick={handleEvaluate}
+          disabled={loading}
+          className="relative group overflow-hidden rounded-[2rem] p-[3px]"
+        >
+          {/* Animated gradient border */}
+          <span className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 rounded-[2rem] opacity-70 group-hover:opacity-100 blur-sm transition-opacity duration-500" />
+          <span className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 rounded-[2rem]" />
+          
+          <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 px-10 py-4 rounded-[calc(2rem-3px)] flex items-center gap-3 transition-all duration-300 group-hover:bg-opacity-0 group-hover:from-transparent group-hover:to-transparent">
+            {loading ? (
+              <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Zap className="w-6 h-6 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+            )}
+            <span className="text-white font-black text-lg tracking-wide drop-shadow-md">
+              EVALUAR RIESGO
+            </span>
+          </div>
+        </button>
+      </div>
+
+      {/* Resultado Animado */}
+      {result && (
+        <div ref={resultRef} className="mt-8">
+          <div className={`relative overflow-hidden rounded-3xl p-1 shadow-2xl ${
+            result.verdict === 'APROBAR_TRX' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/20' :
+            result.verdict === 'CONTACTAR_CLIENTE' ? 'bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/20' :
+            'bg-gradient-to-br from-red-500 to-red-700 shadow-red-500/20'
+          }`}>
+            <div className="bg-white/95 backdrop-blur-xl rounded-[calc(1.5rem-4px)] p-8 md:p-12 flex flex-col gap-8 relative overflow-hidden">
+              
+              {/* Decoración de fondo */}
+              <div className={`absolute -right-20 -top-20 w-64 h-64 rounded-full opacity-10 blur-3xl ${
+                result.verdict === 'APROBAR_TRX' ? 'bg-emerald-500' :
+                result.verdict === 'CONTACTAR_CLIENTE' ? 'bg-amber-500' :
+                'bg-red-500'
+              }`} />
+
+              <div className="flex flex-col md:flex-row items-center justify-between gap-8 z-10 w-full">
+                <div className="flex-1 text-center md:text-left">
+                  <h4 className="text-slate-500 font-bold uppercase tracking-widest text-xs mb-2">Decisión del Motor</h4>
+                  <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
+                    {result.verdict === 'APROBAR_TRX' && <CheckCircle className="w-8 h-8 text-emerald-500" />}
+                    {result.verdict === 'CONTACTAR_CLIENTE' && <AlertTriangle className="w-8 h-8 text-amber-500" />}
+                    {result.verdict === 'DESCARTAR' && <XCircle className="w-8 h-8 text-red-500" />}
+                    <h2 className={`text-3xl md:text-4xl font-black tracking-tight ${
+                      result.verdict === 'APROBAR_TRX' ? 'text-emerald-600' :
+                      result.verdict === 'CONTACTAR_CLIENTE' ? 'text-amber-600' :
+                      'text-red-600'
+                    }`}>
+                      {result.verdict === 'APROBAR_TRX' ? 'APROBAR' : result.verdict === 'CONTACTAR_CLIENTE' ? 'REVISAR' : 'RECHAZAR'}
+                    </h2>
+                  </div>
+                  {result.transactionId && (
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg w-fit border border-slate-200 mx-auto md:mx-0">
+                      <Database className="w-3.5 h-3.5 text-blue-500" />
+                      Evaluación guardada en BD
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col items-center justify-center min-w-[200px]">
+                  <div className="relative">
+                    <svg className="w-32 h-32 transform -rotate-90">
+                      <circle cx="64" cy="64" r="56" className="stroke-slate-100" strokeWidth="12" fill="none" />
+                      <circle 
+                        cx="64" cy="64" r="56" 
+                        className={`transition-all duration-1000 ease-out ${
+                          result.verdict === 'APROBAR_TRX' ? 'stroke-emerald-500' :
+                          result.verdict === 'CONTACTAR_CLIENTE' ? 'stroke-amber-500' :
+                          'stroke-red-500'
+                        }`} 
+                        strokeWidth="12" 
+                        fill="none" 
+                        strokeLinecap="round"
+                        strokeDasharray="351.858"
+                        strokeDashoffset={351.858 - (351.858 * result.riskScore) / 100}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center flex-col">
+                      <span className="text-3xl font-black text-slate-800">{result.riskScore}</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">Score</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contexto Histórico — Contacto Previo & Máximo */}
+              <div className="z-10 mt-2 pt-5 border-t border-slate-100/60">
+                <div className="flex flex-wrap gap-3">
+                  {/* Pill de Contacto */}
+                  <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold border ${
+                    result.historicalFrequency > 0
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                      : 'bg-slate-50 border-slate-200 text-slate-500'
+                  }`}>
+                    <ShieldCheck className="w-4 h-4" />
+                    {result.historicalFrequency > 0
+                      ? `Contacto previo ✔ — ${result.historicalFrequency} vez${result.historicalFrequency !== 1 ? 'es' : ''}`
+                      : 'Sin contacto previo'}
+                  </div>
+
+                  {/* Pill de Máximo Histórico */}
+                  {result.historicalMax > 0 && (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold border bg-blue-50 border-blue-200 text-blue-700">
+                      <TrendingUp className="w-4 h-4" />
+                      Máx. histórico: ${result.historicalMax.toLocaleString('es-CO')}
+                    </div>
+                  )}
+
+                  {/* Valor actual vs máximo */}
+                  {result.historicalMax > 0 && (
+                    <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold border ${
+                      result.currentValue <= result.historicalMax
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                        : 'bg-red-50 border-red-200 text-red-700'
+                    }`}>
+                      <CreditCard className="w-4 h-4" />
+                      TRX ${result.currentValue.toLocaleString('es-CO')}
+                      {result.currentValue <= result.historicalMax
+                        ? ' ≤ Máx ✔'
+                        : ` ▲ ${((result.currentValue / result.historicalMax - 1) * 100).toFixed(0)}% sobre máx`}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Explicación Humanizada */}
+              <div className="z-10 mt-2 pt-6 border-t border-slate-100/60 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className={`p-5 rounded-2xl border shadow-sm ${
+                  result.verdict === 'APROBAR_TRX' ? 'bg-emerald-50/50 border-emerald-100' :
+                  result.verdict === 'CONTACTAR_CLIENTE' ? 'bg-amber-50/50 border-amber-100' :
+                  'bg-red-50/50 border-red-100'
+                }`}>
+                  <h4 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <MessageSquareText className={`w-4 h-4 ${
+                      result.verdict === 'APROBAR_TRX' ? 'text-emerald-500' :
+                      result.verdict === 'CONTACTAR_CLIENTE' ? 'text-amber-500' :
+                      'text-red-500'
+                    }`} />
+                    Análisis de Inteligencia
+                  </h4>
+                  <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                    {getHumanExplanation(result)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Razones del Dictamen & Gráficas (Estilo Tremor Compacto) */}
+              {result.triggeredRules && result.triggeredRules.length > 0 && (
+                <div className="z-10 mt-5 grid lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+                  
+                  {/* Lista de Factores (Columna 1) */}
+                  <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <Activity className="w-3.5 h-3.5 text-slate-400" />
+                      Factores Activados
+                    </h4>
+                    <div className="flex-1 overflow-y-auto pr-1">
+                      <ul className="space-y-2">
+                        {result.triggeredRules.map((rule, idx) => (
+                          <li key={idx} className="flex items-center justify-between bg-slate-50/80 p-2.5 rounded-lg border border-slate-100 shadow-sm transition-all hover:bg-white group">
+                            <div className="flex items-center gap-2.5 truncate">
+                              <div className={`shrink-0 p-1 rounded-md ${
+                                rule.alertLevel === 'critical' ? 'bg-red-100 text-red-600' :
+                                rule.alertLevel === 'high' ? 'bg-amber-100 text-amber-600' :
+                                rule.score < 0 ? 'bg-emerald-100 text-emerald-600' :
+                                'bg-blue-100 text-blue-600'
+                              }`}>
+                                {rule.score < 0 ? <CheckCircle className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
+                              </div>
+                              <span className="font-bold text-xs text-slate-700 truncate">{rule.ruleName}</span>
+                            </div>
+                            <span className={`text-xs font-black tabular-nums shrink-0 ml-2 ${rule.score < 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                              {rule.score > 0 ? '+' : ''}{rule.score}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Gráfico de Impacto - BarChart (Columna 2) */}
+                  <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
+                      Impacto Relativo
+                    </h4>
+                    <div className="flex-1 min-h-[160px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={result.triggeredRules} layout="vertical" margin={{ top: 0, right: 10, left: -20, bottom: 0 }}>
+                          <XAxis type="number" hide />
+                          <YAxis dataKey="ruleName" type="category" width={80} tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <Tooltip 
+                            cursor={{ fill: '#f8fafc' }}
+                            contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold', padding: '8px' }}
+                            formatter={(value: any) => [value > 0 ? `+${value} pts` : `${value} pts`, 'Impacto']}
+                          />
+                          <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={16} animationDuration={1500}>
+                            {result.triggeredRules.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={
+                                entry.alertLevel === 'critical' ? '#ef4444' :
+                                entry.alertLevel === 'high' ? '#f59e0b' : 
+                                entry.score < 0 ? '#10b981' : '#3b82f6'
+                              } />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Gráfico de Distribución - DonutChart (Columna 3) */}
+                  <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                      <PieChartIcon className="w-3.5 h-3.5 text-indigo-500" />
+                      Distribución del Score
+                    </h4>
+                    <div className="flex-1 min-h-[160px] w-full relative flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={result.triggeredRules.map(r => ({...r, positiveScore: Math.max(0, r.score)}))}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={65}
+                            paddingAngle={2}
+                            dataKey="positiveScore"
+                            animationDuration={1500}
+                            stroke="none"
+                          >
+                            {result.triggeredRules.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={
+                                entry.alertLevel === 'critical' ? '#ef4444' :
+                                entry.alertLevel === 'high' ? '#f59e0b' : 
+                                entry.score < 0 ? '#10b981' : '#3b82f6'
+                              } />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold', padding: '8px' }}
+                            formatter={(value: any) => [`${value} pts`, 'Aporte']}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-2xl font-black text-slate-800 leading-none">{result.riskScore}</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">Total</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

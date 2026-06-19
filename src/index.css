@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy-950: #050505; /* Black text */
+  --color-navy-900: #1C1E21; /* Dark header/text */
+  --color-navy-800: #050505; /* Primary text */
+  --color-navy-700: #65676B; /* Secondary text */
+  --color-navy-600: #1877F2; /* FB Blue */
+  --color-navy-500: #1864D9; /* FB Blue Darker */
+  --color-navy-400: #8A8D91; /* Icon / inactive */
+  --color-navy-300: #BEC3C9; /* Input borders */
+  --color-navy-200: #CED0D4; /* Dividers */
+  --color-navy-100: #E4E6EB; /* Hover background / borders */
+  --color-navy-50:  #F0F2F5; /* Main background */
+
+  --color-coral-700: #E03131;
+  --color-coral-500: #FF6B6B;
+  --color-coral-400: #FF8E8E;
+  --color-coral-200: #FFC9C9;
+  --color-coral-100: #FFE5E5;
+
+  --color-emerald-700: #047857;
+  --color-emerald-500: #10B981;
+  --color-emerald-400: #34D399;
+  --color-emerald-200: #A7F3D0;
+  --color-emerald-100: #D1FAE5;
+
+  --color-amber-700: #B45309;
+  --color-amber-500: #F59E0B;
+  --color-amber-400: #FBBF24;
+  --color-amber-200: #FDE68A;
+  --color-amber-100: #FEF3C7;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", monospace;
+
+  --shadow-soft-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-soft-md: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --shadow-soft-lg: 0 8px 30px rgba(0, 0, 0, 0.15);
+  --shadow-soft-xl: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+@layer base {
+  body {
+    @apply text-navy-800 font-sans antialiased bg-gradient-to-br from-slate-50 via-slate-100 to-blue-50/30 min-h-screen bg-fixed;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  ::selection {
+    @apply bg-navy-200/60 text-navy-900;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-navy-200 rounded-full hover:bg-navy-300 transition-colors;
+  }
+}
+
+@utility card {
+  @apply bg-white/70 backdrop-blur-xl rounded-3xl border border-slate-200/60 transition-all duration-300 ease-in-out;
+  box-shadow: var(--shadow-soft-md);
+}
+
+@utility card-hover {
+  @apply card transition-all duration-200;
+  &:hover {
+    box-shadow: var(--shadow-soft-lg);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@utility card-flat {
+  @apply bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200/60 transition-all duration-300 ease-in-out;
+}
+
+@utility input-perfx {
+  @apply w-full px-4 py-2.5 rounded-2xl border border-slate-200/80 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-slate-800
+    placeholder:text-slate-400 text-sm transition-all duration-300 ease-in-out outline-none
+    focus:border-blue-400 focus:bg-white focus:shadow-[0_4px_20px_rgba(24,119,242,0.15)] backdrop-blur-md;
+}
+
+@utility semantic-pill-approved {
+  @apply bg-emerald-100/50 text-emerald-700 border border-emerald-200/50 rounded-full px-3 py-1 font-semibold text-xs flex items-center gap-1.5 backdrop-blur-md shadow-sm;
+}
+@utility semantic-pill-flagged {
+  @apply bg-amber-100/50 text-amber-700 border border-amber-200/50 rounded-full px-3 py-1 font-semibold text-xs flex items-center gap-1.5 backdrop-blur-md shadow-sm;
+}
+@utility semantic-pill-rejected {
+  @apply bg-coral-100/50 text-coral-700 border border-coral-200/50 rounded-full px-3 py-1 font-semibold text-xs flex items-center gap-1.5 backdrop-blur-md shadow-sm;
+}
