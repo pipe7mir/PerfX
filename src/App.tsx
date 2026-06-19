@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from './context/AuthContext';
@@ -14,6 +14,7 @@ import AuditPage from './pages/AuditPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import SplashScreen from './components/ui/SplashScreen';
 
 function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -56,7 +57,6 @@ function ProtectedLayout() {
     return <Navigate to="/change-password" replace />;
   }
 
-  // If user doesn't need to change password, but they try to access /change-password
   if (!user?.mustChangePassword && location.pathname === '/change-password') {
     return <Navigate to="/evaluate" replace />;
   }
@@ -84,19 +84,32 @@ function ProtectedLayout() {
 
 export default function App() {
   const { isAuthenticated } = useAuth();
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2200); // 2.2 seconds display
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/evaluate" replace /> : <LoginPage />}
-        />
-        <Route
-          path="/*"
-          element={isAuthenticated ? <ProtectedLayout /> : <Navigate to="/login" replace />}
-        />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <AnimatePresence>
+        {showSplash && <SplashScreen />}
+      </AnimatePresence>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/login"
+            element={isAuthenticated ? <Navigate to="/evaluate" replace /> : <LoginPage />}
+          />
+          <Route
+            path="/*"
+            element={isAuthenticated ? <ProtectedLayout /> : <Navigate to="/login" replace />}
+          />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
