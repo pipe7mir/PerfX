@@ -14,6 +14,8 @@ import RulesPage from './pages/RulesPage';
 import UsersPage from './pages/UsersPage';
 import AuditPage from './pages/AuditPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
+import ProfilePage from './pages/ProfilePage';
+import SettingsPage from './pages/SettingsPage';
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import SplashScreen from './components/ui/SplashScreen';
@@ -24,7 +26,7 @@ function PageWrapper({ children }: { children: React.ReactNode }) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
+      transition={{ duration: 0.2 }}
     >
       {children}
     </motion.div>
@@ -69,7 +71,7 @@ function ProtectedLayout() {
       <Sidebar />
       <TopNavbar />
       <MobileBottomNav />
-      <main className="lg:pl-72 p-4 sm:p-6 pt-24 pb-28 lg:pt-6 lg:pb-6 transition-all duration-300 overflow-hidden">
+      <main className="lg:pl-72 p-4 sm:p-6 pt-32 pb-28 lg:pt-6 lg:pb-6 transition-all duration-300 overflow-hidden">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/evaluate" element={<PageWrapper><EvaluationPage /></PageWrapper>} />
@@ -77,6 +79,8 @@ function ProtectedLayout() {
             <Route path="/rules" element={<PageWrapper><RulesPage /></PageWrapper>} />
             <Route path="/users" element={<PageWrapper><UsersPage /></PageWrapper>} />
             <Route path="/audit" element={<PageWrapper><AuditPage /></PageWrapper>} />
+            <Route path="/profile" element={<PageWrapper><ProfilePage /></PageWrapper>} />
+            <Route path="/settings" element={<PageWrapper><SettingsPage /></PageWrapper>} />
             <Route path="/change-password" element={<PageWrapper><ChangePasswordPage /></PageWrapper>} />
             <Route path="*" element={<Navigate to="/evaluate" replace />} />
           </Routes>
