@@ -66,7 +66,7 @@ function ProtectedLayout() {
   }
 
   return (
-    <div className="min-h-screen text-navy-800 relative">
+    <div className="min-h-screen text-navy-800 dark:text-slate-200 bg-slate-50 dark:bg-abyssal transition-colors duration-300 relative">
       <Toaster position="top-center" reverseOrder={false} />
       <Sidebar />
       <TopNavbar />

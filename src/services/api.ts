@@ -150,6 +150,18 @@ export const api = {
         const body = await response.json().catch(() => ({}));
         throw new Error(body.error || 'Error al crear la cuenta');
       }
+    },
+    async generate2FA(): Promise<{ secret: string; qrCode: string }> {
+      return request('/api/v1/auth/2fa/generate', { method: 'POST' });
+    },
+    async enable2FA(token: string, secret: string): Promise<void> {
+      await request('/api/v1/auth/2fa/enable', {
+        method: 'POST',
+        body: JSON.stringify({ token, secret }),
+      });
+    },
+    async disable2FA(): Promise<void> {
+      await request('/api/v1/auth/2fa/disable', { method: 'POST' });
     }
   },
 

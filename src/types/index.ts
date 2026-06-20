@@ -103,6 +103,7 @@ export interface User {
   avatar_url?: string;
   cover_url?: string;
   is_active?: boolean;
+  is_2fa_enabled?: boolean;
   created_at?: string;
   mustChangePassword?: boolean;
 }

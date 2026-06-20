@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { MCCProvider } from './context/MCCContext';
 import { RulesProvider } from './context/RulesContext';
 import { ConfirmProvider } from './context/ConfirmContext';
+import { ThemeProvider } from './context/ThemeContext';
 import App from './App';
 import './index.css';
 
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')!).render(
       <MCCProvider>
         <RulesProvider>
           <ConfirmProvider>
-            <App />
+            <ThemeProvider>
+              <App />
+            </ThemeProvider>
           </ConfirmProvider>
         </RulesProvider>
       </MCCProvider>
