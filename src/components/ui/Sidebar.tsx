@@ -8,7 +8,7 @@ const navItems = [
   { to: '/evaluate', icon: Shield, label: 'Evaluador' },
   { to: '/mcc', icon: Search, label: 'Catálogo MCC' },
   { to: '/rules', icon: Settings, label: 'Reglas' },
-  { to: '/users', icon: Users, label: 'Equipo' },
+  { to: '/users', icon: Users, label: 'Equipo', adminOnly: true },
   { to: '/audit', icon: FileText, label: 'Auditoría Forense' },
 ];
 
@@ -20,6 +20,8 @@ export default function Sidebar() {
     const namePart = email.split('@')[0];
     return namePart.split('.').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
   };
+
+  const filteredNavItems = navItems.filter(item => !item.adminOnly || user?.role === 'admin');
 
   return (
     <motion.aside 
@@ -34,7 +36,7 @@ export default function Sidebar() {
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
-          {navItems.map(item => (
+          {filteredNavItems.map(item => (
             <NavLink
               key={item.to}
               to={item.to}

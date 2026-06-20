@@ -3,6 +3,7 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { LogOut, UserCircle, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { PerfxLogo } from '../../assets/PerfxLogo';
+import { Link } from 'react-router-dom';
 
 export const TopNavbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -51,7 +52,7 @@ export const TopNavbar = () => {
                     <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-white/10 overflow-hidden hover:border-white/30 transition-colors bg-[#1f2856] focus:outline-none"
+                        className="flex items-center justify-center w-11 h-11 rounded-full border-2 border-white/10 overflow-hidden hover:border-white/30 transition-colors bg-[#1f2856] focus:outline-none"
                     >
                         {user?.avatar_url ? (
                             <img src={user.avatar_url} alt="Perfil" className="w-full h-full object-cover" />
@@ -67,7 +68,7 @@ export const TopNavbar = () => {
                                 initial="hidden"
                                 animate="visible"
                                 exit="exit"
-                                className="absolute right-0 mt-3 w-56 bg-[#0B104A]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col"
+                                className="absolute right-0 mt-3 w-56 bg-[#0B104A] border border-white/10 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col z-50"
                             >
                                 <div className="px-4 py-3 border-b border-white/5 bg-white/5">
                                     <p className="text-sm font-semibold text-white truncate">{formatName(user?.email)}</p>
@@ -75,14 +76,22 @@ export const TopNavbar = () => {
                                 </div>
 
                                 <div className="p-2 flex flex-col gap-1">
-                                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    <Link 
+                                        to="/profile" 
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                                    >
                                         <UserCircle className="w-4 h-4 text-slate-400" />
                                         Mi Perfil
-                                    </button>
-                                    <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    </Link>
+                                    <Link 
+                                        to="/settings"
+                                        onClick={() => setIsMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                                    >
                                         <Settings className="w-4 h-4 text-slate-400" />
                                         Configuración
-                                    </button>
+                                    </Link>
 
                                     <div className="h-[1px] bg-white/5 my-1" />
 

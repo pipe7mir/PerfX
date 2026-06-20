@@ -2,9 +2,11 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { Shield, Search, Settings, Users, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
 export const MobileBottomNav = () => {
     const location = useLocation();
+    const { user } = useAuth();
 
     // Definimos los items laterales
     const leftItems = [
@@ -13,7 +15,7 @@ export const MobileBottomNav = () => {
     ];
 
     const rightItems = [
-        { to: '/users', icon: Users, label: 'Equipo' },
+        ...(user?.role === 'admin' ? [{ to: '/users', icon: Users, label: 'Equipo' }] : []),
         { to: '/audit', icon: FileText, label: 'Auditoría' },
     ];
 
