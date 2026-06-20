@@ -57,8 +57,8 @@ export const Smart2FA: React.FC<Smart2FAProps> = ({ onVerifyTOTP, onVerifyBiomet
     }
   };
 
-  const handleTotpSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleTotpSubmit = (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
     if (totpCode.length === 6) {
       onVerifyTOTP(totpCode);
     }
@@ -106,7 +106,7 @@ export const Smart2FA: React.FC<Smart2FAProps> = ({ onVerifyTOTP, onVerifyBiomet
             </button>
           </div>
         ) : (
-          <form onSubmit={handleTotpSubmit} className="flex flex-col items-center w-full animate-in fade-in duration-500">
+          <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
             <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 backdrop-blur-sm">
               <Lock className="w-8 h-8 text-cyan-400" />
             </div>
@@ -122,19 +122,26 @@ export const Smart2FA: React.FC<Smart2FAProps> = ({ onVerifyTOTP, onVerifyBiomet
                 placeholder="000000"
                 value={totpCode}
                 onChange={e => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleTotpSubmit();
+                  }
+                }}
                 className="w-full bg-black/30 border border-white/10 text-center tracking-[0.7em] text-2xl font-mono font-bold text-white rounded-2xl py-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-transparent transition-all placeholder:text-white/20"
                 autoFocus
               />
               
               <button
-                type="submit"
+                type="button"
+                onClick={handleTotpSubmit}
                 disabled={totpCode.length !== 6 || isProcessing}
                 className="w-full bg-white text-[#0B104A] hover:bg-slate-100 disabled:bg-white/50 disabled:cursor-not-allowed font-bold py-4 rounded-2xl transition-colors shadow-lg shadow-black/20"
               >
                 {isProcessing ? 'Verificando...' : 'Verificar Código'}
               </button>
             </div>
-          </form>
+          </div>
         )}
       </div>
     </div>

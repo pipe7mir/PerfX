@@ -118,7 +118,8 @@ export default function LoginPage() {
 
   const handleMfaVerify = async (e: React.MouseEvent<HTMLButtonElement> | null, codeToVerify?: string) => {
     if (e) e.preventDefault();
-    resetForm();
+    setError('');
+    setSuccessMsg('');
 
     const code = codeToVerify || totpCode;
 
@@ -200,7 +201,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="space-y-5">
+          <form className="space-y-5" onSubmit={e => e.preventDefault()}>
             {/* ── MODO: LOGIN ─────────────────────────────────── */}
             {mode === 'LOGIN' && (
               <>
