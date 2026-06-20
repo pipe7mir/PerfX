@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { Shield, Search, Settings, LogOut, Menu, X, Users, FileText } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PerfxLogo } from '../../assets/PerfxLogo';
 
 const navItems = [
   { to: '/evaluate', icon: Shield, label: 'Evaluador' },
@@ -24,16 +25,8 @@ export default function Sidebar() {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className="p-5 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold text-white tracking-tight">PERFX</h1>
-            <p className="text-[9px] text-white/50 tracking-widest uppercase font-medium">Risk Engine</p>
-          </div>
-        </div>
+      <div className="p-5 border-b border-white/10 flex items-center justify-center md:justify-start">
+        <PerfxLogo variant="static" />
       </div>
 
       <nav className="flex-1 p-3 space-y-1">
