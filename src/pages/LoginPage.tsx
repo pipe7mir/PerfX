@@ -60,7 +60,10 @@ export default function LoginPage() {
     e.preventDefault();
     resetForm();
 
-    const targetEmail = lastProfile ? lastProfile.email : email;
+    let targetEmail = lastProfile ? lastProfile.email : email;
+    if (targetEmail && !targetEmail.includes('@')) {
+      targetEmail = targetEmail.toLowerCase().replace(/\s+/g, '.') + '@perfx.io';
+    }
 
     if (!targetEmail.trim() || !password.trim()) {
       setError('Todos los campos son requeridos');
