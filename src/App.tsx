@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext';
 import { useRules } from './context/RulesContext';
 import { api } from './services/api';
 import Sidebar from './components/ui/Sidebar';
+import { TopNavbar } from './components/ui/TopNavbar';
 import { MobileBottomNav } from './components/ui/MobileBottomNav';
 import LoginPage from './pages/LoginPage';
 import EvaluationPage from './pages/EvaluationPage';
@@ -66,8 +67,9 @@ function ProtectedLayout() {
     <div className="min-h-screen text-navy-800 relative">
       <Toaster position="top-center" reverseOrder={false} />
       <Sidebar />
+      <TopNavbar />
       <MobileBottomNav />
-      <main className="lg:pl-72 p-4 sm:p-6 pt-6 pb-28 lg:pb-6 transition-all duration-300 overflow-hidden">
+      <main className="lg:pl-72 p-4 sm:p-6 pt-24 pb-28 lg:pt-6 lg:pb-6 transition-all duration-300 overflow-hidden">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/evaluate" element={<PageWrapper><EvaluationPage /></PageWrapper>} />
