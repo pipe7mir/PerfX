@@ -4,9 +4,17 @@ import { ArrowRight, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 
 interface AnimatedLoginButtonProps {
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
+    label?: string;
+    loadingLabel?: string;
+    successLabel?: string;
 }
 
-export const AnimatedLoginButton: React.FC<AnimatedLoginButtonProps> = ({ onClick }) => {
+export const AnimatedLoginButton: React.FC<AnimatedLoginButtonProps> = ({ 
+    onClick, 
+    label = "Acceder al sistema", 
+    loadingLabel = "VALIDANDO...", 
+    successLabel = "ACCESO APROBADO" 
+}) => {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
     const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -62,7 +70,7 @@ export const AnimatedLoginButton: React.FC<AnimatedLoginButtonProps> = ({ onClic
                         exit={{ opacity: 0, y: -15 }}
                         className="flex items-center gap-2"
                     >
-                        Acceder al sistema <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
+                        {label} <ArrowRight className="w-4 h-4" strokeWidth={2.5} />
                     </motion.div>
                 )}
 
@@ -74,7 +82,7 @@ export const AnimatedLoginButton: React.FC<AnimatedLoginButtonProps> = ({ onClic
                         exit={{ opacity: 0, scale: 0.5 }}
                         className="flex items-center gap-2"
                     >
-                        <Loader2 className="w-5 h-5 animate-spin" /> VALIDANDO...
+                        <Loader2 className="w-5 h-5 animate-spin" /> {loadingLabel}
                     </motion.div>
                 )}
 
@@ -86,7 +94,7 @@ export const AnimatedLoginButton: React.FC<AnimatedLoginButtonProps> = ({ onClic
                         exit={{ opacity: 0, y: -15 }}
                         className="flex items-center gap-2"
                     >
-                        <CheckCircle2 className="w-5 h-5" /> ACCESO APROBADO
+                        <CheckCircle2 className="w-5 h-5" /> {successLabel}
                     </motion.div>
                 )}
 

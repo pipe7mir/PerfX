@@ -108,7 +108,7 @@ export const api = {
   },
 
   auth: {
-    async login(email: string, password: string): Promise<{ isAuthenticated: boolean; accessToken: string; refreshToken: string; user: User }> {
+    async login(email: string, password: string): Promise<any> {
       const response = await fetch(`${GATEWAY_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -119,9 +119,38 @@ export const api = {
         throw new Error(body.error || 'Credenciales inválidas');
       }
       const data = await response.json();
+      // Si requiere MFA, devolvemos el reto sin setear tokens
+      if (data.nextStep === 'MFA_REQUIRED') {
+        return data;
+      }
       setTokens(data.accessToken, data.refreshToken);
       return data;
     },
+    async verifyLoginMfa(mfaToken: string, totpCode: string): Promise<any> {
+      const response = await fetch(`${GATEWAY_URL}/api/v1/auth/login/verify-mfa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mfaToken, totpCode }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || 'Código inválido');
+      }
+      const data = await response.json();
+      setTokens(data.accessToken, data.refreshToken);
+      return data;
+    },
+    async register(name: string, email: string, password: string): Promise<void> {
+      const response = await fetch(`${GATEWAY_URL}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || 'Error al crear la cuenta');
+      }
+    }
   },
 
   rules: {

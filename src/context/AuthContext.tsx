@@ -5,7 +5,8 @@ import type { User } from '../types';
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  login: (email: string, password: string) => Promise<User | null>;
+  login: (email: string, password: string) => Promise<any>;
+  verifyMfa: (mfaToken: string, totpCode: string) => Promise<User | null>;
   logout: () => void;
 }
 
@@ -34,6 +35,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const response = await api.auth.login(email, password);
+      
+      // Si requiere MFA, simplemente devolvemos la respuesta al UI
+      if (response.nextStep === 'MFA_REQUIRED') {
+        return response;
+      }
+
       if (response.isAuthenticated && response.user) {
         setIsAuthenticated(true);
         setUser(response.user);
@@ -42,8 +49,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       console.error('Error in login:', err);
+      throw err;
     }
+    return null;
+  }, []);
 
+  const verifyMfa = useCallback(async (mfaToken: string, totpCode: string) => {
+    try {
+      const response = await api.auth.verifyLoginMfa(mfaToken, totpCode);
+      if (response.isAuthenticated && response.user) {
+        setIsAuthenticated(true);
+        setUser(response.user);
+        localStorage.setItem('perfx_user', JSON.stringify(response.user));
+        return response.user;
+      }
+    } catch (err) {
+      console.error('Error in verifyMfa:', err);
+      throw err;
+    }
     return null;
   }, []);
 
@@ -55,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, verifyMfa, logout }}>
       {children}
     </AuthContext.Provider>
   );
