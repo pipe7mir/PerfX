@@ -33,10 +33,10 @@ export const MobileBottomNav = () => {
                         return (
                             <NavLink key={item.to} to={item.to} className="relative flex flex-col items-center justify-center w-12 group">
                                 <item.icon
-                                    className={`w-6 h-6 transition-colors duration-300 ${isActive ? 'text-[#0B104A]' : 'text-slate-400 group-hover:text-slate-600'}`}
+                                    className={`w-6 h-6 transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400 group-hover:text-slate-600'}`}
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
-                                <span className={`text-[9px] font-bold mt-1 tracking-wider transition-colors duration-300 ${isActive ? 'text-[#0B104A]' : 'text-slate-400'}`}>
+                                <span className={`text-[9px] font-bold mt-1 tracking-wider transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400'}`}>
                                     {item.label}
                                 </span>
                                 {/* Puntito indicador de activo */}
@@ -74,10 +74,10 @@ export const MobileBottomNav = () => {
                         return (
                             <NavLink key={item.to} to={item.to} className="relative flex flex-col items-center justify-center w-12 group">
                                 <item.icon
-                                    className={`w-6 h-6 transition-colors duration-300 ${isActive ? 'text-[#0B104A]' : 'text-slate-400 group-hover:text-slate-600'}`}
+                                    className={`w-6 h-6 transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400 group-hover:text-slate-600'}`}
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
-                                <span className={`text-[9px] font-bold mt-1 tracking-wider transition-colors duration-300 ${isActive ? 'text-[#0B104A]' : 'text-slate-400'}`}>
+                                <span className={`text-[9px] font-bold mt-1 tracking-wider transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400'}`}>
                                     {item.label}
                                 </span>
                                 {isActive && (

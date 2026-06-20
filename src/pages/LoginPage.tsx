@@ -218,7 +218,7 @@ export default function LoginPage() {
                     <h3 className="text-2xl font-bold text-slate-800 tracking-tight text-center relative z-10">
                       {formatName(lastProfile.email)}
                     </h3>
-                    <p className="text-[10px] font-bold text-[#0B104A] uppercase tracking-widest mt-1 mb-6 relative z-10 text-center">
+                    <p className="text-[10px] font-bold text-navy-900 uppercase tracking-widest mt-1 mb-6 relative z-10 text-center">
                       {formatRole(lastProfile.role)}
                     </p>
                     <button
@@ -228,7 +228,7 @@ export default function LoginPage() {
                         setEmail('');
                         localStorage.removeItem('perfx_last_profile');
                       }}
-                      className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-[#0B104A] transition-colors relative z-10"
+                      className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-navy-900 transition-colors relative z-10"
                     >
                       Ingresar con otra cuenta
                     </button>
@@ -373,7 +373,7 @@ export default function LoginPage() {
                   <button 
                     type="button" 
                     onClick={() => { setMode('LOGIN'); resetForm(); }}
-                    className="text-xs font-bold text-slate-400 hover:text-[#0B104A] flex items-center gap-1 transition-colors"
+                    className="text-xs font-bold text-slate-400 hover:text-navy-900 flex items-center gap-1 transition-colors"
                   >
                     <ArrowLeft className="w-3 h-3" /> Volver al Login
                   </button>
@@ -399,7 +399,7 @@ export default function LoginPage() {
                   <button 
                     type="button" 
                     onClick={() => { setMode('LOGIN'); resetForm(); }}
-                    className="text-xs font-bold text-slate-400 hover:text-[#0B104A] flex items-center gap-1 transition-colors"
+                    className="text-xs font-bold text-slate-400 hover:text-navy-900 flex items-center gap-1 transition-colors"
                   >
                     <ArrowLeft className="w-3 h-3" /> Cancelar
                   </button>

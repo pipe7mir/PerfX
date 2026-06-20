@@ -136,7 +136,7 @@ export const Smart2FA: React.FC<Smart2FAProps> = ({ onVerifyTOTP, onVerifyBiomet
                 type="button"
                 onClick={handleTotpSubmit}
                 disabled={totpCode.length !== 6 || isProcessing}
-                className="w-full bg-white text-[#0B104A] hover:bg-slate-100 disabled:bg-white/50 disabled:cursor-not-allowed font-bold py-4 rounded-2xl transition-colors shadow-lg shadow-black/20"
+                className="w-full bg-white text-navy-900 hover:bg-slate-100 disabled:bg-white/50 disabled:cursor-not-allowed font-bold py-4 rounded-2xl transition-colors shadow-lg shadow-black/20"
               >
                 {isProcessing ? 'Verificando...' : 'Verificar Código'}
               </button>

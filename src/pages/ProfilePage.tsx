@@ -17,7 +17,7 @@ export default function ProfilePage() {
     return (
         <div className="max-w-4xl mx-auto">
             <header className="mb-8">
-                <h1 className="text-3xl font-black tracking-tight text-[#0B104A] mb-2">Mi Perfil</h1>
+                <h1 className="text-3xl font-black tracking-tight text-navy-900 dark:text-white mb-2">Mi Perfil</h1>
                 <p className="text-slate-500 font-medium">Gestiona tu información personal y credenciales de acceso.</p>
             </header>
 
@@ -41,7 +41,7 @@ export default function ProfilePage() {
                 <div className="pt-16 px-8 pb-8">
                     <div className="flex justify-between items-end mb-8">
                         <div>
-                            <h2 className="text-2xl font-bold text-[#0B104A]">{formatName(user?.email)}</h2>
+                            <h2 className="text-2xl font-bold text-navy-900 dark:text-white">{formatName(user?.email)}</h2>
                             <p className="text-sm font-bold text-emerald-500 uppercase tracking-widest mt-1">{user?.role}</p>
                         </div>
                         <button 
