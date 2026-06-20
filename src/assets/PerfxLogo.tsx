@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 
 interface PerfxLogoProps {
     variant?: 'intro' | 'static' | 'icon';
@@ -16,7 +16,7 @@ export const PerfxLogo: React.FC<PerfxLogoProps> = ({
     fullLogoSrc = '/logo-perfx-full.png',
     iconLogoSrc = '/logo-perfx-icon.png',
 }) => {
-    const introContainerVariants = {
+    const introContainerVariants: Variants = {
         hidden: { opacity: 0, scale: 0.8, filter: 'blur(10px)' },
         visible: {
             opacity: 1,
@@ -30,7 +30,7 @@ export const PerfxLogo: React.FC<PerfxLogoProps> = ({
         },
     };
 
-    const subtleFloatVariants = {
+    const subtleFloatVariants: Variants = {
         hidden: { y: 10, opacity: 0 },
         visible: {
             y: 0,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PerfxLogo } from '../assets/PerfxLogo';
 

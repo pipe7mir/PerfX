@@ -34,7 +34,7 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Comfortaa', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         'glow': '0 0 15px rgba(0, 242, 254, 0.5)',
