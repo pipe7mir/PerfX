@@ -8,6 +8,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<any>;
   verifyMfa: (mfaToken: string, totpCode: string) => Promise<User | null>;
   logout: () => void;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -77,8 +78,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('perfx_user');
   }, []);
 
+  const updateUser = useCallback((updatedUser: User) => {
+    setUser(updatedUser);
+    localStorage.setItem('perfx_user', JSON.stringify(updatedUser));
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, verifyMfa, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, verifyMfa, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

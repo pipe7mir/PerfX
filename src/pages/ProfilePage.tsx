@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Shield, Camera, Save } from 'lucide-react';
+import { User, Mail, Shield, Camera, Save, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { api } from '../services/api';
+import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [name, setName] = useState(user?.email?.split('@')[0] || '');
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const formatName = (email: string | undefined) => {
         if (!email) return 'Usuario';
@@ -14,19 +18,43 @@ export default function ProfilePage() {
         return namePart.split('.').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
     };
 
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user?.id) return;
+        
+        setIsUploading(true);
+        try {
+            const url = await api.storage.uploadAvatar(file);
+            await api.users.update(user.id, { avatar_url: url });
+            updateUser({ ...user, avatar_url: url });
+            toast.success('Foto de perfil actualizada');
+        } catch (err: any) {
+            toast.error(err.message || 'Error al actualizar la foto');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     return (
         <div className="max-w-4xl mx-auto">
             <header className="mb-8">
-                <h1 className="text-3xl font-black tracking-tight text-navy-900 dark:text-white mb-2">Mi Perfil</h1>
+                <h1 className="text-3xl font-black tracking-tight text-[#0B104A] dark:text-white mb-2">Mi Perfil</h1>
                 <p className="text-slate-500 font-medium">Gestiona tu información personal y credenciales de acceso.</p>
             </header>
 
             <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
                 <div className="h-32 bg-[#0B104A] relative">
-                    {/* Botón de editar avatar simulado */}
-                    <button className="absolute -bottom-10 left-8 w-24 h-24 bg-white rounded-full p-1 shadow-lg group">
+                    {/* Botón de editar avatar */}
+                    <input type="file" className="hidden" ref={fileInputRef} accept="image/*" onChange={handleAvatarChange} />
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading}
+                        className="absolute -bottom-10 left-8 w-24 h-24 bg-white rounded-full p-1 shadow-lg group disabled:opacity-70"
+                    >
                         <div className="w-full h-full rounded-full bg-slate-100 overflow-hidden relative flex items-center justify-center">
-                            {user?.avatar_url ? (
+                            {isUploading ? (
+                                <Loader2 className="w-8 h-8 text-[#0B104A] animate-spin" />
+                            ) : user?.avatar_url ? (
                                 <img src={user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
                                 <User className="w-10 h-10 text-slate-400" />
@@ -41,7 +69,7 @@ export default function ProfilePage() {
                 <div className="pt-16 px-8 pb-8">
                     <div className="flex justify-between items-end mb-8">
                         <div>
-                            <h2 className="text-2xl font-bold text-navy-900 dark:text-white">{formatName(user?.email)}</h2>
+                            <h2 className="text-2xl font-bold text-[#0B104A] dark:text-white">{formatName(user?.email)}</h2>
                             <p className="text-sm font-bold text-emerald-500 uppercase tracking-widest mt-1">{user?.role}</p>
                         </div>
                         <button 
@@ -64,7 +92,7 @@ export default function ProfilePage() {
                                     disabled={!isEditing}
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="block w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-medium focus:border-[#0B104A] focus:bg-white focus:ring-0 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="block w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-medium text-[#0B104A] dark:text-white dark:bg-[#11175c] focus:border-[#0B104A] focus:bg-white focus:ring-0 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -79,7 +107,7 @@ export default function ProfilePage() {
                                     type="email" 
                                     disabled
                                     value={user?.email || ''}
-                                    className="block w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-medium opacity-70 cursor-not-allowed"
+                                    className="block w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-medium text-[#0B104A] dark:text-white dark:bg-[#11175c] opacity-70 cursor-not-allowed"
                                 />
                             </div>
                         </div>
@@ -94,7 +122,7 @@ export default function ProfilePage() {
                                     type="text" 
                                     disabled
                                     value={user?.role || ''}
-                                    className="block w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-medium uppercase opacity-70 cursor-not-allowed"
+                                    className="block w-full pl-11 pr-4 py-3 bg-slate-50 border-transparent rounded-xl text-sm font-medium text-[#0B104A] dark:text-white dark:bg-[#11175c] uppercase opacity-70 cursor-not-allowed"
                                 />
                             </div>
                         </div>

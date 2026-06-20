@@ -88,7 +88,7 @@ export default function SettingsPage() {
     return (
         <div className="max-w-4xl mx-auto">
             <header className="mb-8">
-                <h1 className="text-3xl font-black tracking-tight text-navy-900 dark:text-white mb-2">Configuración</h1>
+                <h1 className="text-3xl font-black tracking-tight text-[#0B104A] dark:text-white mb-2">Configuración</h1>
                 <p className="text-slate-500 dark:text-slate-400 font-medium">Personaliza las preferencias operativas y de seguridad de la plataforma.</p>
             </header>
 
@@ -96,7 +96,7 @@ export default function SettingsPage() {
                 {/* Panel de Preferencias */}
                 <div className="bg-white dark:bg-abyssal-light rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-white/5 overflow-hidden">
                     <div className="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
-                        <h2 className="text-sm font-bold uppercase tracking-widest text-navy-900 dark:text-white/80">Preferencias de Usuario</h2>
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-[#0B104A] dark:text-white/80">Preferencias de Usuario</h2>
                     </div>
                     <div className="divide-y divide-slate-100 dark:divide-white/5">
                         <div className="p-6 flex items-center justify-between">
@@ -105,7 +105,7 @@ export default function SettingsPage() {
                                     <Bell className="w-5 h-5 text-blue-500" />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-navy-900 dark:text-white">Notificaciones Push</p>
+                                    <p className="font-bold text-[#0B104A] dark:text-white">Notificaciones Push</p>
                                     <p className="text-xs font-medium text-slate-400">Recibe alertas sobre transacciones sospechosas</p>
                                 </div>
                             </div>
@@ -122,7 +122,7 @@ export default function SettingsPage() {
                                     {theme === 'dark' ? <Moon className="w-5 h-5 text-indigo-500" /> : <Sun className="w-5 h-5 text-indigo-500" />}
                                 </div>
                                 <div>
-                                    <p className="font-bold text-navy-900 dark:text-white">Modo Oscuro</p>
+                                    <p className="font-bold text-[#0B104A] dark:text-white">Modo Oscuro</p>
                                     <p className="text-xs font-medium text-slate-400">Cambia la interfaz a colores oscuros</p>
                                 </div>
                             </div>
@@ -139,7 +139,7 @@ export default function SettingsPage() {
                 {/* Panel de Seguridad */}
                 <div className="bg-white dark:bg-abyssal-light rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-white/5 overflow-hidden">
                     <div className="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/20">
-                        <h2 className="text-sm font-bold uppercase tracking-widest text-navy-900 dark:text-white/80">Seguridad y Privacidad</h2>
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-[#0B104A] dark:text-white/80">Seguridad y Privacidad</h2>
                     </div>
                     <div className="divide-y divide-slate-100 dark:divide-white/5">
                         <div className="p-6 flex items-center justify-between">
@@ -148,7 +148,7 @@ export default function SettingsPage() {
                                     <ShieldAlert className="w-5 h-5 text-[#F97E00]" />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-navy-900 dark:text-white">Autenticación de 2 Factores</p>
+                                    <p className="font-bold text-[#0B104A] dark:text-white">Autenticación de 2 Factores</p>
                                     <p className="text-xs font-medium text-slate-400">Añade una capa extra de seguridad al login</p>
                                 </div>
                             </div>
@@ -166,7 +166,7 @@ export default function SettingsPage() {
                                     <Globe className="w-5 h-5 text-emerald-500" />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-navy-900 dark:text-white">Telemetría y Ubicación</p>
+                                    <p className="font-bold text-[#0B104A] dark:text-white">Telemetría y Ubicación</p>
                                     <p className="text-xs font-medium text-slate-400">Permitir enviar datos de sesión para auditoría</p>
                                 </div>
                             </div>
@@ -196,7 +196,7 @@ export default function SettingsPage() {
                             <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <ShieldAlert className="w-6 h-6 text-[#F97E00]" />
                             </div>
-                            <h2 className="text-xl font-bold text-navy-900">Activar 2FA</h2>
+                            <h2 className="text-xl font-bold text-[#0B104A] dark:text-white">Activar 2FA</h2>
                             <p className="text-sm text-slate-500 mt-2">
                                 Escanea este código QR con tu aplicación de autenticación (Google Authenticator, Authy, etc).
                             </p>
