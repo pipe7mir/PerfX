@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PerfxLogo } from '../assets/PerfxLogo';
+import { AnimatedLoginButton } from '../components/ui/AnimatedLoginButton';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -18,9 +19,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  // Helper functions
   const formatName = (email: string) => {
     if (!email) return 'Usuario';
     const namePart = email.split('@')[0];
@@ -35,45 +34,49 @@ export default function LoginPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Nueva función adaptada para el botón animado
+  const handleLoginAttempt = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setError('');
 
     if (!username.trim() || !password.trim()) {
       setError('Todos los campos son requeridos');
-      return;
+      throw new Error('Campos incompletos'); // Dispara la animación de error
     }
 
-    setLoading(true);
     const user = await login(username, password);
+
     if (!user) {
       setError('Credenciales inválidas');
-    } else {
-      localStorage.setItem('perfx_last_profile', JSON.stringify({
-        username,
-        email: user.email,
-        role: user.role,
-        avatar_url: user.avatar_url
-      }));
+      throw new Error('Fallo de autenticación'); // Dispara la animación de error
     }
-    // Note: redirection is handled by App.tsx router or we can do it here, but App.tsx <ProtectedLayout> is better for standard routing.
-    setLoading(false);
+
+    // Si es exitoso, guardamos el perfil
+    localStorage.setItem('perfx_last_profile', JSON.stringify({
+      username,
+      email: user.email,
+      role: user.role,
+      avatar_url: user.avatar_url
+    }));
+
+    // Pequeño retraso intencional (800ms) para que el usuario pueda ver
+    // la animación verde de "ACCESO APROBADO" antes de que el router lo saque de la vista.
+    await new Promise(resolve => setTimeout(resolve, 800));
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
       <div className="w-full max-w-[800px] bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[480px]">
-        
+
         {/* Left Panel: Image Cover */}
-        <div className="hidden md:block md:w-1/2 relative bg-navy-800">
-          <img 
-            src="/assets/login-bg.png" 
-            alt="Cybersecurity" 
+        <div className="hidden md:block md:w-1/2 relative bg-[#0B104A]">
+          <img
+            src="/assets/login-bg.png"
+            alt="Cybersecurity"
             className="absolute inset-0 w-full h-full object-cover"
           />
-          {/* Glassmorphism Overlay at bottom */}
           <div className="absolute bottom-8 left-8 right-8">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-white">
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-white shadow-xl">
               <p className="text-xs font-bold tracking-[0.2em] text-white/80 mb-2 uppercase">Smart Fraud Engine</p>
               <h2 className="text-2xl font-bold leading-tight">Control total sobre sus transacciones en tiempo real.</h2>
             </div>
@@ -89,16 +92,16 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form className="space-y-6">
             {lastProfile ? (
               <div className="flex flex-col items-center justify-center relative pt-4 pb-2">
                 <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl shadow-slate-200/80 overflow-hidden relative z-10 bg-white mb-5 transition-transform duration-500 hover:scale-[1.02]">
-                  <img src={lastProfile.avatar_url || `https://ui-avatars.com/api/?name=${formatName(lastProfile.email)}&background=2563eb&color=fff&size=250&rounded=true`} alt="Avatar" className="w-full h-full object-cover" />
+                  <img src={lastProfile.avatar_url || `https://ui-avatars.com/api/?name=${formatName(lastProfile.email)}&background=0B104A&color=fff&size=250&rounded=true`} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-2xl font-bold text-slate-800 tracking-tight text-center relative z-10">
                   {formatName(lastProfile.email)}
                 </h3>
-                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1 mb-6 relative z-10 text-center">
+                <p className="text-[10px] font-bold text-[#0B104A] uppercase tracking-widest mt-1 mb-6 relative z-10 text-center">
                   {formatRole(lastProfile.role)}
                 </p>
                 <button
@@ -108,7 +111,7 @@ export default function LoginPage() {
                     setUsername('');
                     localStorage.removeItem('perfx_last_profile');
                   }}
-                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-blue-600 transition-colors relative z-10"
+                  className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-[#0B104A] transition-colors relative z-10"
                 >
                   Ingresar con otra cuenta
                 </button>
@@ -127,7 +130,7 @@ export default function LoginPage() {
                     placeholder="Documento o Usuario"
                     value={username}
                     onChange={e => setUsername(e.target.value)}
-                    className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all border border-slate-100"
+                    className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
                   />
                 </div>
               </div>
@@ -138,7 +141,7 @@ export default function LoginPage() {
                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   Contraseña
                 </label>
-                <button type="button" className="text-[10px] font-bold text-blue-600 uppercase tracking-wider hover:underline">
+                <button type="button" className="text-[10px] font-bold text-[#0B104A] uppercase tracking-wider hover:underline">
                   ¿Olvidó la clave?
                 </button>
               </div>
@@ -151,7 +154,7 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-11 py-3.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all border border-slate-100"
+                  className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-11 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
                 />
                 <button
                   type="button"
@@ -163,16 +166,11 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {error && <p className="text-xs font-semibold text-coral-500">{error}</p>}
+            {error && <p className="text-xs font-semibold text-coral-500 text-center">{error}</p>}
 
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-2xl py-4 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-50 shadow-lg shadow-blue-500/30"
-            >
-              {loading ? 'Validando...' : 'Acceder al sistema'}
-              {!loading && <ArrowRight className="w-4 h-4" strokeWidth={2.5} />}
-            </button>
+            {/* AQUÍ ESTÁ EL NUEVO BOTÓN */}
+            <AnimatedLoginButton onClick={handleLoginAttempt} />
+
           </form>
 
           <div className="mt-auto pt-10">
