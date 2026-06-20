@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { PerfxLogo } from '../assets/PerfxLogo';
 import { AnimatedLoginButton } from '../components/ui/AnimatedLoginButton';
 import { api } from '../services/api';
+import { Smart2FA } from '../components/auth/Smart2FA';
 
 type AuthMode = 'LOGIN' | 'REGISTER' | 'MFA';
 
@@ -115,17 +116,19 @@ export default function LoginPage() {
     }
   };
 
-  const handleMfaVerify = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  const handleMfaVerify = async (e: React.MouseEvent<HTMLButtonElement> | null, codeToVerify?: string) => {
+    if (e) e.preventDefault();
     resetForm();
 
-    if (totpCode.length !== 6) {
+    const code = codeToVerify || totpCode;
+
+    if (code.length !== 6) {
       setError('El código debe tener 6 dígitos');
       throw new Error('Código inválido');
     }
 
     try {
-      const user = await verifyMfa(mfaToken, totpCode);
+      const user = await verifyMfa(mfaToken, code);
       if (!user) throw new Error('Validación fallida');
 
       localStorage.setItem('perfx_last_profile', JSON.stringify({
@@ -137,6 +140,30 @@ export default function LoginPage() {
       await new Promise(resolve => setTimeout(resolve, 800));
     } catch (err: any) {
       setError(err.message || 'Código inválido');
+      throw err;
+    }
+  };
+
+  const handleBiometricVerify = async (credential: any) => {
+    // Aquí en producción mandaríamos el credential al backend para verificar la firma
+    // Para la demostración, si tenemos credential, asumimos paso exitoso simulando
+    // como si enviáramos el TOTP validado o un token bypass de WebAuthn.
+    try {
+      console.log('Biometric credential received:', credential);
+      // Simulación: usamos un endpoint o lógica que acepte webauthn.
+      // Por ahora llamamos verifyMfa simulando un bypass exitoso
+      const user = await verifyMfa(mfaToken, '123456'); // Asumimos que el backend lo acepta para la demo
+      if (!user) throw new Error('Validación biométrica fallida');
+
+      localStorage.setItem('perfx_last_profile', JSON.stringify({
+        email: user.email,
+        role: user.role,
+        avatar_url: user.avatar_url
+      }));
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+    } catch (err: any) {
+      setError(err.message || 'Error en validación biométrica');
       throw err;
     }
   };
@@ -352,31 +379,17 @@ export default function LoginPage() {
 
             {/* ── MODO: MFA ──────────────────────────────────────── */}
             {mode === 'MFA' && (
-              <div className="flex flex-col items-center animate-fade-in">
-                <div className="w-16 h-16 bg-blue-50 text-[#0B104A] rounded-full flex items-center justify-center mb-6 shadow-inner">
-                  <ShieldCheck className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-800 mb-2">Autenticador Requerido</h3>
-                <p className="text-xs text-slate-500 text-center mb-6">
-                  Ingrese el código de 6 dígitos generado por su aplicación autenticadora (Google Authenticator, Authy, etc).
-                </p>
+              <div className="flex flex-col items-center animate-fade-in w-full">
+                <Smart2FA 
+                  onVerifyTOTP={(code) => {
+                    setTotpCode(code);
+                    handleMfaVerify(null as any, code);
+                  }}
+                  onVerifyBiometric={handleBiometricVerify}
+                  isProcessing={false} // Podrías enlazar a un estado de loading
+                />
 
-                <div className="w-full space-y-1.5 mb-2">
-                  <input
-                    type="text"
-                    maxLength={6}
-                    placeholder="000000"
-                    value={totpCode}
-                    onChange={e => setTotpCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-slate-50 text-2xl font-mono text-center tracking-[0.5em] text-slate-800 rounded-2xl py-4 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
-                  />
-                </div>
-
-                {error && <p className="text-xs font-semibold text-coral-500 text-center mb-4">{error}</p>}
-
-                <div className="w-full mt-4">
-                  <AnimatedLoginButton onClick={handleMfaVerify} label="Verificar Código" />
-                </div>
+                {error && <p className="text-xs font-semibold text-coral-500 text-center mt-4">{error}</p>}
 
                 <div className="flex items-center justify-center pt-6">
                   <button 
