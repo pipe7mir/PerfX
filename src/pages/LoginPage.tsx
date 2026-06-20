@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Lock, Eye, EyeOff, ShieldCheck, Mail, ArrowLeft } from 'lucide-react';
+import { User, Lock, Eye, EyeOff, Mail, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { PerfxLogo } from '../assets/PerfxLogo';
 import { AnimatedLoginButton } from '../components/ui/AnimatedLoginButton';
