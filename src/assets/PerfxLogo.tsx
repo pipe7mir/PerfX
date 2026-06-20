@@ -4,9 +4,10 @@ import React from 'react';
 import { motion, type Variants } from 'framer-motion';
 
 interface PerfxLogoProps {
-    variant?: 'intro' | 'static' | 'icon';
+    variant?: 'intro' | 'static' | 'static-dark' | 'icon';
     className?: string;
     fullLogoSrc?: string;
+    fullDarkLogoSrc?: string;
     iconLogoSrc?: string;
 }
 
@@ -14,6 +15,7 @@ export const PerfxLogo: React.FC<PerfxLogoProps> = ({
     variant = 'static',
     className = '',
     fullLogoSrc = '/logo-perfx-full.png',
+    fullDarkLogoSrc = '/logo-perfx-full-dark.png',
     iconLogoSrc = '/logo-perfx-icon.png',
 }) => {
     const introContainerVariants: Variants = {
@@ -84,6 +86,20 @@ export const PerfxLogo: React.FC<PerfxLogoProps> = ({
                     className="h-1 bg-gradient-to-r from-transparent via-[#f97e00] to-transparent mt-8 rounded-full"
                 />
             </motion.div>
+        );
+    }
+
+    if (variant === 'static-dark') {
+        return (
+            <div className={`flex items-center justify-center w-full ${className}`}>
+                <img
+                    src={fullDarkLogoSrc}
+                    alt="PERFX Logo Dark Text"
+                    width={125}
+                    height={42}
+                    className="object-contain"
+                />
+            </div>
         );
     }
 

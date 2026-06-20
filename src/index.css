@@ -25,17 +25,17 @@
 }
 
 @theme {
-  --color-navy-950: #050505; /* Black text */
-  --color-navy-900: #1C1E21; /* Dark header/text */
-  --color-navy-800: #050505; /* Primary text */
-  --color-navy-700: #65676B; /* Secondary text */
-  --color-navy-600: #1877F2; /* FB Blue */
-  --color-navy-500: #1864D9; /* FB Blue Darker */
-  --color-navy-400: #8A8D91; /* Icon / inactive */
-  --color-navy-300: #BEC3C9; /* Input borders */
-  --color-navy-200: #CED0D4; /* Dividers */
-  --color-navy-100: #E4E6EB; /* Hover background / borders */
-  --color-navy-50:  #F0F2F5; /* Main background */
+  --color-navy-950: #03051a; /* Abyssal Dark */
+  --color-navy-900: #0B104A; /* Azul PERFX Principal */
+  --color-navy-800: #1f2856; 
+  --color-navy-700: #35407a;
+  --color-navy-600: #4a579d;
+  --color-navy-500: #606fc1;
+  --color-navy-400: #828dce;
+  --color-navy-300: #a3abdb;
+  --color-navy-200: #c5c9e8;
+  --color-navy-100: #e6e8f6;
+  --color-navy-50:  #f2f4fb;
 
   --color-coral-700: #E03131;
   --color-coral-500: #FF6B6B;

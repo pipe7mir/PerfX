@@ -82,8 +82,8 @@ export default function LoginPage() {
 
         {/* Right Panel: Login Form */}
         <div className="w-full md:w-1/2 p-8 lg:p-10 flex flex-col justify-center relative bg-white">
-          <div className="mb-8">
-            <PerfxLogo variant="static" className="mb-2 w-40" />
+          <div className="mb-8 flex flex-col items-center text-center">
+            <PerfxLogo variant="static-dark" className="mb-2" />
             <p className="text-[10px] text-slate-400 mt-1 tracking-widest uppercase font-bold">
               Ingrese a su panel operativo
             </p>
