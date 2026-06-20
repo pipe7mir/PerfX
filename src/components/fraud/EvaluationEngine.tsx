@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Zap, ShieldCheck, Search, Building2, CreditCard, Activity, CheckCircle, AlertTriangle, XCircle, Plus, Database, MessageSquareText, TrendingUp, PieChart as PieChartIcon } from 'lucide-react';
+import { Zap, ShieldCheck, Search, Building2, CreditCard, Activity, CheckCircle, AlertTriangle, XCircle, Plus, Database, MessageSquareText, TrendingUp, PieChart as PieChartIcon, User, Briefcase, Info } from 'lucide-react';
 import gsap from 'gsap';
+import { motion, AnimatePresence } from 'framer-motion';
 import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { api } from '../../services/api';
 import type { EvaluationInput, EvaluationResult, MCC } from '../../types';
 import { useMCC } from '../../context/MCCContext';
-
-// Funciones auxiliares eliminadas al ser inputs libres
 
 const getHumanExplanation = (result: EvaluationResult) => {
   const hasContact = result.historicalFrequency > 0;
@@ -30,7 +29,8 @@ const getHumanExplanation = (result: EvaluationResult) => {
 export default function EvaluationEngine() {
   const { mccs, lookupFullCatalog, suggestFullCatalog, addMCC } = useMCC();
 
-  // State
+  // Estados de Negocio y UX
+  const [clientType, setClientType] = useState<'NATURAL' | 'JURIDICA'>('NATURAL');
   const [transactionType, setTransactionType] = useState<'POS' | 'INT'>('POS');
   const [hasContact, setHasContact] = useState(false);
   const [priorContactCount, setPriorContactCount] = useState<string>('1');
@@ -51,6 +51,19 @@ export default function EvaluationEngine() {
 
   const resultRef = useRef<HTMLDivElement>(null);
 
+  // Lógica de Validación Cruzada (Progressive Disclosure)
+  const isStrictMode = !hasContact;
+  const suggestedLimit = clientType === 'NATURAL' ? 500000 : 5000000;
+  
+  // Asumimos que si no es COP, convertimos rudimentariamente para la advertencia visual
+  const getApproxValueCOP = () => {
+    const val = parseFloat(currentTrxValue) || 0;
+    if (currency === 'USD') return val * 4000;
+    if (currency === 'EUR') return val * 4400;
+    return val;
+  };
+  const amountExceedsLimit = isStrictMode && getApproxValueCOP() > suggestedLimit;
+
   useEffect(() => {
     if (result && resultRef.current) {
       setTimeout(() => {
@@ -65,12 +78,9 @@ export default function EvaluationEngine() {
     }
   }, [result]);
 
-  // Auto-complete simple logic
   const filteredMccs = mccs.filter(m => 
     m.code.includes(mccSearch) || m.description.toLowerCase().includes(mccSearch.toLowerCase())
   ).slice(0, 5);
-
-  // Full catalog suggestions when active catalog has no matches
 
   const fullSuggestion = mccSearch && !selectedMccId && filteredMccs.length === 0
     ? lookupFullCatalog(mccSearch)
@@ -91,7 +101,6 @@ export default function EvaluationEngine() {
   };
 
   const getRiskColor = (mcc: MCC) => {
-    // Para simplificar, asumimos que si el score base es alto, el color es rojo
     if (mcc.base_risk_score >= 70) return 'text-red-600 bg-red-50 border-red-200';
     if (mcc.base_risk_score >= 30) return 'text-amber-600 bg-amber-50 border-amber-200';
     return 'text-emerald-600 bg-emerald-50 border-emerald-200';
@@ -139,233 +148,306 @@ export default function EvaluationEngine() {
     setLoading(false);
   };
 
+  // UI Components
+  const SegmentedControl = ({ options, active, onChange }: any) => (
+    <div className="flex bg-slate-100/80 p-1.5 rounded-2xl">
+      {options.map((opt: any) => (
+        <button
+          key={opt.value}
+          onClick={() => onChange(opt.value)}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-2 text-sm font-bold rounded-xl transition-all duration-300 ${
+            active === opt.value 
+              ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' 
+              : 'text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          {opt.icon && <opt.icon className="w-4 h-4" />}
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
-      <div className="grid lg:grid-cols-2 gap-6">
+    <div className="max-w-[1200px] mx-auto space-y-8 animate-in fade-in duration-500 pb-12">
+      <div className="grid lg:grid-cols-12 gap-8">
         
-        {/* COLUMNA IZQUIERDA: Perfil Histórico */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-8 h-fit">
-          <div>
-            <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-widest">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
-              Contexto de la Operación
+        {/* COLUMNA IZQUIERDA: Contexto de la Operación */}
+        <div className="lg:col-span-5 flex flex-col gap-6">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 shadow-sm border border-slate-100/50">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Contexto
             </h3>
-            
-            <div className="space-y-8">
-              {/* Tipo de Transacción (Segmented Control) */}
+
+            <div className="space-y-6">
+              {/* Tipo de Cliente */}
               <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-3">Canal Transaccional</label>
-                <div className="flex bg-slate-100/80 p-1.5 rounded-2xl">
-                  <button
-                    onClick={() => setTransactionType('POS')}
-                    className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
-                      transactionType === 'POS' 
-                        ? 'bg-white text-blue-600 shadow-sm' 
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
-                  >
-                    Físico (POS)
-                  </button>
-                  <button
-                    onClick={() => setTransactionType('INT')}
-                    className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
-                      transactionType === 'INT' 
-                        ? 'bg-white text-blue-600 shadow-sm' 
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
-                  >
-                    Internet (INT)
-                  </button>
-                </div>
+                <label className="block text-sm font-semibold text-slate-700 mb-3">Perfil del Cliente</label>
+                <SegmentedControl 
+                  active={clientType} 
+                  onChange={setClientType}
+                  options={[
+                    { label: 'Persona Natural', value: 'NATURAL', icon: User },
+                    { label: 'Persona Jurídica', value: 'JURIDICA', icon: Briefcase }
+                  ]}
+                />
               </div>
 
-              {/* Contacto Previo (Switch) */}
-              <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${hasContact ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'}`}>
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">¿Contacto previo con el comercio?</h4>
-                    <p className="text-xs text-slate-500 font-medium">Mitiga el riesgo de suplantación</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setHasContact(!hasContact)}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${hasContact ? 'bg-blue-600' : 'bg-slate-300'}`}
-                >
-                  <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${hasContact ? 'translate-x-7' : 'translate-x-1'}`} />
-                </button>
+              {/* Canal Transaccional */}
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-3">Canal Transaccional</label>
+                <SegmentedControl 
+                  active={transactionType} 
+                  onChange={setTransactionType}
+                  options={[
+                    { label: 'Físico (POS)', value: 'POS' },
+                    { label: 'Internet (INT)', value: 'INT' }
+                  ]}
+                />
               </div>
 
-              {/* Conditional Prior Contact Metrics */}
-              {hasContact && (
-                <div className="grid grid-cols-2 gap-4 mt-2 bg-blue-50/50 p-5 rounded-2xl border border-blue-100 animate-in fade-in slide-in-from-top-2">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-2">Frecuencia Histórica</label>
-                    <input
-                      type="number"
-                      min="1"
-                      placeholder="Ej: 5 veces"
-                      value={priorContactCount}
-                      onChange={(e) => setPriorContactCount(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
-                    />
+              {/* Contacto Previo (Strict Mode Trigger) */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between p-5 bg-slate-50 rounded-3xl border border-slate-100 transition-colors hover:bg-slate-100/50">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2.5 rounded-2xl ${hasContact ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'}`}>
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-800">¿Contacto previo?</h4>
+                      <p className="text-[11px] text-slate-500 font-medium mt-0.5">Mitiga el riesgo de suplantación</p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-2">Valor Máx Histórico ({currency})</label>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder="Ej: 150000"
-                      value={priorContactMaxValue}
-                      onChange={(e) => setPriorContactMaxValue(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
-                    />
-                  </div>
+                  <button 
+                    onClick={() => setHasContact(!hasContact)}
+                    className={`w-12 h-6 rounded-full transition-colors relative shadow-inner ${hasContact ? 'bg-blue-600' : 'bg-slate-300'}`}
+                  >
+                    <div className={`w-4 h-4 rounded-full bg-white shadow-sm absolute top-1 transition-transform duration-300 ${hasContact ? 'translate-x-7' : 'translate-x-1'}`} />
+                  </button>
                 </div>
-              )}
+
+                <AnimatePresence>
+                  {isStrictMode ? (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                      animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl flex gap-3 items-start">
+                        <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-bold text-orange-800">Modo Estricto Activado</p>
+                          <p className="text-xs text-orange-700/80 mt-1 font-medium leading-relaxed">
+                            Evaluando posible suplantación en primera operación. Límite sugerido: ${suggestedLimit.toLocaleString('es-CO')} COP.
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                      animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                      exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="grid grid-cols-2 gap-4 bg-blue-50/50 p-5 rounded-3xl border border-blue-100">
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-2">Freq. Histórica</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={priorContactCount}
+                            onChange={(e) => setPriorContactCount(e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-2xl py-2.5 px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-slate-600 mb-2">Valor Máx ({currency})</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={priorContactMaxValue}
+                            onChange={(e) => setPriorContactMaxValue(e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-2xl py-2.5 px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>
 
         {/* COLUMNA DERECHA: Datos de la Transacción Actual */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col gap-8">
-          <div>
-            <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-widest">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              Datos de la Transacción
+        <div className="lg:col-span-7 flex flex-col gap-6">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100/50">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Transacción
             </h3>
             
             <div className="space-y-6">
               
-              {/* Nombre del Comercio */}
-              <div>
-                <div className="flex justify-between items-end mb-2">
-                  <label className="block text-sm font-semibold text-slate-600">Nombre del Comercio</label>
-                  <span className="text-xs text-slate-400 font-medium">(Opcional)</span>
-                </div>
-                <div className="relative">
-                  <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              {/* Buscador MCC Inteligente */}
+              <div className="relative z-20">
+                <label className="block text-sm font-semibold text-slate-700 mb-3">Clasificación del Comercio (MCC)</label>
+                
+                <AnimatePresence mode="wait">
+                  {!selectedMccId ? (
+                    <motion.div
+                      key="search"
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
+                      className="relative"
+                    >
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                      <input 
+                        type="text" 
+                        placeholder="Buscar por código o palabra clave..."
+                        value={mccSearch}
+                        onChange={(e) => setMccSearch(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                      />
+                      
+                      {/* Dropdown Resultados */}
+                      {mccSearch && (
+                        <div className="absolute w-full mt-2 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden z-50">
+                          {filteredMccs.length > 0 ? (
+                            filteredMccs.map(mcc => (
+                              <button
+                                key={mcc.code}
+                                onClick={() => {
+                                  setSelectedMccId(mcc.code);
+                                  setMccSearch(`${mcc.code} - ${mcc.description}`);
+                                }}
+                                className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-left"
+                              >
+                                <div>
+                                  <p className="text-sm font-bold text-slate-800">{mcc.code}</p>
+                                  <p className="text-xs text-slate-500 font-medium">{mcc.description}</p>
+                                </div>
+                                <span className={`text-[10px] font-bold px-2 py-1 rounded-md border ${getRiskColor(mcc)}`}>
+                                  {getRiskLabel(mcc)}
+                                </span>
+                              </button>
+                            ))
+                          ) : fullSuggestion ? (
+                            <div className="p-4">
+                              <p className="text-xs text-slate-400 font-medium mb-2">Código encontrado en catálogo global</p>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-bold text-slate-800">{mccSearch}</p>
+                                  <p className="text-xs text-slate-500 font-medium">{fullSuggestion}</p>
+                                </div>
+                                <button
+                                  onClick={handleAddToCatalog}
+                                  className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl transition-colors"
+                                >
+                                  <Plus className="w-3.5 h-3.5" /> Agregar
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="p-4 text-sm text-slate-500 text-center font-medium">Sin resultados</div>
+                          )}
+                        </div>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="chip"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex flex-col gap-3"
+                    >
+                      <div className="bg-slate-800 text-white rounded-2xl p-4 shadow-md flex items-center justify-between group">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                            <Building2 className="w-5 h-5 text-blue-300" />
+                          </div>
+                          <div className="truncate">
+                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-0.5">MCC Seleccionado</p>
+                            <p className="text-sm font-bold truncate pr-4">{mccSearch}</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => { setSelectedMccId(''); setMccSearch(''); }}
+                          className="text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-2 rounded-xl transition-colors shrink-0"
+                        >
+                          Cambiar
+                        </button>
+                      </div>
+                      
+                      {/* Micro-tarjeta de divulgación progresiva */}
+                      <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-3 flex items-start gap-3">
+                        <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+                        <p className="text-xs text-blue-800 font-medium leading-relaxed">
+                          Este código define el perfil de riesgo base de la industria. El análisis incluirá comercios similares para evaluar anomalías de frecuencia y montos.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Nombre y Valor en Grid */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Nombre del Comercio */}
+                <div>
+                  <div className="flex justify-between items-end mb-3">
+                    <label className="block text-sm font-semibold text-slate-700">Comercio</label>
+                    <span className="text-xs text-slate-400 font-medium">(Opcional)</span>
+                  </div>
                   <input 
                     type="text" 
-                    placeholder="Ej: Amazon, Uber, Comercio Local..."
+                    placeholder="Ej: Amazon, Uber..."
                     value={merchantName}
                     onChange={(e) => setMerchantName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                  />
+                </div>
+
+                {/* Frecuencia TRX */}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    Frecuencia (Últimas 24h)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Transacciones en 24h"
+                    value={trxCount24h}
+                    onChange={(e) => setTrxCount24h(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                   />
                 </div>
               </div>
 
-              {/* Búsqueda de MCC */}
-              <div className="relative z-20">
-                <label className="block text-sm font-semibold text-slate-600 mb-2">Código MCC</label>
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <input 
-                    type="text" 
-                    placeholder="Buscar código o industria..."
-                    value={mccSearch}
-                    onChange={(e) => {
-                      setMccSearch(e.target.value);
-                      setSelectedMccId('');
-                    }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 placeholder:font-medium"
-                  />
-                  {selectedMccId && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <CheckCircle className="w-5 h-5 text-emerald-500" />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Autocomplete Dropdown + Full Catalog Suggestions */}
-                {mccSearch && !selectedMccId && (
-                  <div className="absolute w-full mt-2 bg-white border border-slate-100 shadow-xl rounded-2xl overflow-hidden z-50">
-                    {filteredMccs.length > 0 ? (
-                      filteredMccs.map(mcc => (
-                        <button
-                          key={mcc.code}
-                          onClick={() => {
-                            setSelectedMccId(mcc.code);
-                            setMccSearch(`${mcc.code} - ${mcc.description}`);
-                          }}
-                          className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-left"
-                        >
-                          <div>
-                            <p className="text-sm font-bold text-slate-800">{mcc.code}</p>
-                            <p className="text-xs text-slate-500 font-medium">{mcc.description}</p>
-                          </div>
-                          <span className={`text-[10px] font-bold px-2 py-1 rounded-md border ${getRiskColor(mcc)}`}>
-                            {getRiskLabel(mcc)}
-                          </span>
-                        </button>
-                      ))
-                    ) : fullSuggestion ? (
-                      <div className="p-4 border-b border-slate-50">
-                        <p className="text-xs text-slate-400 font-medium mb-1">Código encontrado en catálogo Mastercard</p>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-bold text-slate-800">{mccSearch}</p>
-                            <p className="text-xs text-slate-500 font-medium">{fullSuggestion}</p>
-                          </div>
-                          <button
-                            onClick={handleAddToCatalog}
-                            className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl transition-colors"
-                          >
-                            <Plus className="w-3.5 h-3.5" />
-                            Agregar
-                          </button>
-                        </div>
-                      </div>
-                    ) : fullSuggestions.length > 0 ? (
-                      <div>
-                        <p className="px-4 pt-3 pb-1 text-xs text-slate-400 font-medium">Sugerencias del catálogo Mastercard</p>
-                        {fullSuggestions.map(s => (
-                          <button
-                            key={s.code}
-                            onClick={() => {
-                              setMccSearch(s.code);
-                              const found = lookupFullCatalog(s.code);
-                              if (found) {
-                                setSelectedMccId(s.code);
-                                setMccSearch(`${s.code} - ${found}`);
-                              }
-                            }}
-                            className="w-full flex items-center justify-between p-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-left pl-8"
-                          >
-                            <div>
-                              <p className="text-sm font-bold text-slate-800">{s.code}</p>
-                              <p className="text-xs text-slate-500 font-medium">{s.description}</p>
-                            </div>
-                            <span className="text-[10px] font-bold px-2 py-1 rounded-md border text-slate-400 bg-slate-50 border-slate-200">
-                              REF
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-4 text-sm text-slate-500 text-center font-medium">No se encontraron resultados</div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Valor TRX */}
+              {/* Valor TRX con Validación Cruzada */}
               <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
-                  <CreditCard className="w-4 h-4" /> Monto de Transacción
+                <label className="block text-sm font-semibold text-slate-700 mb-3">
+                  Monto de Transacción
                 </label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                    <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${amountExceedsLimit ? 'text-red-400' : 'text-slate-400'}`}>$</span>
                     <input
                       type="number"
                       min="0"
-                      placeholder="Ej: 50000"
+                      placeholder={`Límite sugerido: $${suggestedLimit.toLocaleString()} COP`}
                       value={currentTrxValue}
                       onChange={(e) => setCurrentTrxValue(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-8 pr-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 placeholder:font-medium"
+                      className={`w-full border rounded-2xl py-3.5 pl-8 pr-4 text-sm font-semibold focus:outline-none focus:ring-2 transition-all placeholder:font-medium
+                        ${amountExceedsLimit 
+                          ? 'bg-red-50 border-red-300 text-red-900 focus:ring-red-500/20 placeholder:text-red-300' 
+                          : 'bg-slate-50 border-slate-200 text-slate-800 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-slate-400'
+                        }`}
                     />
                   </div>
                   <select 
@@ -378,26 +460,20 @@ export default function EvaluationEngine() {
                     <option value="EUR">EUR</option>
                   </select>
                 </div>
-                {currency !== 'COP' && (
-                  <p className="text-xs text-slate-500 mt-2 font-medium">
-                    * Se convertirá a COP para la evaluación paramétrica del motor.
-                  </p>
-                )}
-              </div>
-
-              {/* Frecuencia TRX */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
-                  <Activity className="w-4 h-4" /> Frecuencia (Últimas 24h)
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Número de transacciones en 24h"
-                  value={trxCount24h}
-                  onChange={(e) => setTrxCount24h(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400 placeholder:font-medium"
-                />
+                
+                <AnimatePresence>
+                  {amountExceedsLimit && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="mt-2 flex items-center gap-1.5 text-xs font-bold text-red-500"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      El monto supera el umbral seguro para una primera operación.
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
             </div>
@@ -420,17 +496,26 @@ export default function EvaluationEngine() {
       )}
 
       {/* Botón de Acción Principal */}
-      <div className="flex justify-center pt-4">
+      <div className="flex justify-center pt-2">
         <button
           onClick={handleEvaluate}
           disabled={loading}
           className="relative group overflow-hidden rounded-[2rem] p-[3px]"
         >
-          {/* Animated gradient border */}
-          <span className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 rounded-[2rem] opacity-70 group-hover:opacity-100 blur-sm transition-opacity duration-500" />
-          <span className="absolute inset-0 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 rounded-[2rem]" />
+          <span className={`absolute inset-0 rounded-[2rem] blur-sm transition-all duration-500 ${
+            amountExceedsLimit 
+              ? 'bg-gradient-to-r from-red-500 to-orange-500 opacity-80 group-hover:opacity-100' 
+              : 'bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 opacity-70 group-hover:opacity-100'
+          }`} />
+          <span className={`absolute inset-0 rounded-[2rem] ${
+            amountExceedsLimit 
+              ? 'bg-gradient-to-r from-red-500 to-orange-500' 
+              : 'bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600'
+          }`} />
           
-          <div className="relative bg-gradient-to-r from-blue-600 to-indigo-600 px-10 py-4 rounded-[calc(2rem-3px)] flex items-center gap-3 transition-all duration-300 group-hover:bg-opacity-0 group-hover:from-transparent group-hover:to-transparent">
+          <div className={`relative px-10 py-4 rounded-[calc(2rem-3px)] flex items-center gap-3 transition-all duration-300 group-hover:bg-opacity-0 ${
+            amountExceedsLimit ? 'bg-gradient-to-r from-red-600 to-orange-600' : 'bg-gradient-to-r from-blue-600 to-indigo-600'
+          }`}>
             {loading ? (
               <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
@@ -443,17 +528,16 @@ export default function EvaluationEngine() {
         </button>
       </div>
 
-      {/* Resultado Animado */}
+      {/* Resultado Animado (Se mantiene el diseño ganador) */}
       {result && (
         <div ref={resultRef} className="mt-8">
-          <div className={`relative overflow-hidden rounded-3xl p-1 shadow-2xl ${
-            result.verdict === 'APROBAR_TRX' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/20' :
-            result.verdict === 'CONTACTAR_CLIENTE' ? 'bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/20' :
-            'bg-gradient-to-br from-red-500 to-red-700 shadow-red-500/20'
+          <div className={`relative overflow-hidden rounded-3xl p-1 shadow-xl ${
+            result.verdict === 'APROBAR_TRX' ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/10' :
+            result.verdict === 'CONTACTAR_CLIENTE' ? 'bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/10' :
+            'bg-gradient-to-br from-red-500 to-red-700 shadow-red-500/10'
           }`}>
             <div className="bg-white/95 backdrop-blur-xl rounded-[calc(1.5rem-4px)] p-8 md:p-12 flex flex-col gap-8 relative overflow-hidden">
               
-              {/* Decoración de fondo */}
               <div className={`absolute -right-20 -top-20 w-64 h-64 rounded-full opacity-10 blur-3xl ${
                 result.verdict === 'APROBAR_TRX' ? 'bg-emerald-500' :
                 result.verdict === 'CONTACTAR_CLIENTE' ? 'bg-amber-500' :
@@ -512,7 +596,6 @@ export default function EvaluationEngine() {
               {/* Contexto Histórico — Contacto Previo & Máximo */}
               <div className="z-10 mt-2 pt-5 border-t border-slate-100/60">
                 <div className="flex flex-wrap gap-3">
-                  {/* Pill de Contacto */}
                   <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold border ${
                     result.historicalFrequency > 0
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
@@ -524,7 +607,6 @@ export default function EvaluationEngine() {
                       : 'Sin contacto previo'}
                   </div>
 
-                  {/* Pill de Máximo Histórico */}
                   {result.historicalMax > 0 && (
                     <div className="flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold border bg-blue-50 border-blue-200 text-blue-700">
                       <TrendingUp className="w-4 h-4" />
@@ -532,7 +614,6 @@ export default function EvaluationEngine() {
                     </div>
                   )}
 
-                  {/* Valor actual vs máximo */}
                   {result.historicalMax > 0 && (
                     <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold border ${
                       result.currentValue <= result.historicalMax
@@ -570,11 +651,11 @@ export default function EvaluationEngine() {
                 </div>
               </div>
 
-              {/* Razones del Dictamen & Gráficas (Estilo Tremor Compacto) */}
+              {/* Razones del Dictamen & Gráficas */}
               {result.triggeredRules && result.triggeredRules.length > 0 && (
                 <div className="z-10 mt-5 grid lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
                   
-                  {/* Lista de Factores (Columna 1) */}
+                  {/* Lista de Factores */}
                   <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col">
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                       <Activity className="w-3.5 h-3.5 text-slate-400" />
@@ -583,7 +664,7 @@ export default function EvaluationEngine() {
                     <div className="flex-1 overflow-y-auto pr-1">
                       <ul className="space-y-2">
                         {result.triggeredRules.map((rule, idx) => (
-                          <li key={idx} className="flex items-center justify-between bg-slate-50/80 p-2.5 rounded-lg border border-slate-100 shadow-sm transition-all hover:bg-white group">
+                          <li key={idx} className="flex items-center justify-between bg-slate-50/80 p-2.5 rounded-lg border border-slate-100 shadow-sm hover:bg-white group">
                             <div className="flex items-center gap-2.5 truncate">
                               <div className={`shrink-0 p-1 rounded-md ${
                                 rule.alertLevel === 'critical' ? 'bg-red-100 text-red-600' :
@@ -604,7 +685,7 @@ export default function EvaluationEngine() {
                     </div>
                   </div>
 
-                  {/* Gráfico de Impacto - BarChart (Columna 2) */}
+                  {/* Gráfico de Impacto */}
                   <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col">
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                       <TrendingUp className="w-3.5 h-3.5 text-blue-500" />
@@ -634,7 +715,7 @@ export default function EvaluationEngine() {
                     </div>
                   </div>
 
-                  {/* Gráfico de Distribución - DonutChart (Columna 3) */}
+                  {/* Gráfico de Distribución */}
                   <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm flex flex-col">
                     <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                       <PieChartIcon className="w-3.5 h-3.5 text-indigo-500" />
