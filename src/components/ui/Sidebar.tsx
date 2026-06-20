@@ -25,8 +25,8 @@ export default function Sidebar() {
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
-      <div className="p-5 border-b border-white/10 flex items-center justify-center md:justify-start">
-        <PerfxLogo variant="static" />
+      <div className="p-5 border-b border-white/10 flex items-center justify-center w-full">
+        <PerfxLogo variant="static" className="mx-auto" />
       </div>
 
       <nav className="flex-1 p-3 space-y-1">

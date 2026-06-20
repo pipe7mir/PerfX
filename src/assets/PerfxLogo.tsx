@@ -88,12 +88,12 @@ export const PerfxLogo: React.FC<PerfxLogoProps> = ({
     }
 
     return (
-        <div className={`flex items-center ${className}`}>
+        <div className={`flex items-center justify-center w-full ${className}`}>
             <img
                 src={fullLogoSrc}
                 alt="PERFX Logo"
-                width={180}
-                height={60}
+                width={125}
+                height={42}
                 className="object-contain"
             />
         </div>
