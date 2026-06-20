@@ -351,6 +351,32 @@ export default function EvaluationEngine() {
                                 </button>
                               </div>
                             </div>
+                          ) : fullSuggestions.length > 0 ? (
+                            <div>
+                              <p className="px-4 pt-3 pb-1 text-xs text-slate-400 font-medium">Sugerencias del catálogo global</p>
+                              {fullSuggestions.map(s => (
+                                <button
+                                  key={s.code}
+                                  onClick={() => {
+                                    setMccSearch(s.code);
+                                    const found = lookupFullCatalog(s.code);
+                                    if (found) {
+                                      setSelectedMccId(s.code);
+                                      setMccSearch(`${s.code} - ${found}`);
+                                    }
+                                  }}
+                                  className="w-full flex items-center justify-between p-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-left pl-8"
+                                >
+                                  <div>
+                                    <p className="text-sm font-bold text-slate-800">{s.code}</p>
+                                    <p className="text-xs text-slate-500 font-medium">{s.description}</p>
+                                  </div>
+                                  <span className="text-[10px] font-bold px-2 py-1 rounded-md border text-slate-400 bg-slate-50 border-slate-200">
+                                    REF
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
                           ) : (
                             <div className="p-4 text-sm text-slate-500 text-center font-medium">Sin resultados</div>
                           )}
