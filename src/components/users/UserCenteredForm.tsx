@@ -232,10 +232,10 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
                 <ShieldAlert className="w-4 h-4 text-slate-400 shrink-0" />
                 <select
                   value={role}
-                  disabled={!isEditing || (initialData?.role === 'analista' && role === 'analista')}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  className={`w-full bg-transparent text-[14px] text-slate-800 focus:outline-none appearance-none pr-4 font-medium ${!isEditing || (initialData?.role === 'analista' && role === 'analista') ? 'cursor-not-allowed text-slate-500' : 'cursor-pointer'}`}
+                  className="w-full bg-transparent text-[14px] text-slate-800 focus:outline-none appearance-none pr-4 font-medium cursor-pointer"
                 >
+                  <option value="guest">Invitado (GUEST)</option>
                   <option value="analista">Analista de Fraude</option>
                   <option value="supervisor">Supervisor</option>
                   <option value="admin">Administrador Central</option>

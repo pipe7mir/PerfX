@@ -8,15 +8,15 @@ export const MobileBottomNav = () => {
     const location = useLocation();
     const { user } = useAuth();
 
-    // Definimos los items laterales
-    const leftItems = [
+    // Definimos los items laterales (ocultos si el rol es guest)
+    const leftItems = user?.role === 'guest' ? [] : [
         { to: '/mcc', icon: Search, label: 'MCC' },
         { to: '/rules', icon: Settings, label: 'Reglas' },
     ];
 
     const rightItems = [
         ...(user?.role === 'admin' ? [{ to: '/users', icon: Users, label: 'Equipo' }] : []),
-        { to: '/audit', icon: FileText, label: 'Auditoría' },
+        ...(user?.role !== 'guest' ? [{ to: '/audit', icon: FileText, label: 'Auditoría' }] : []),
     ];
 
     return (

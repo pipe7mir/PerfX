@@ -72,7 +72,7 @@ export interface MerchantMemoryRecord {
 }
 
 // PERFX Database mappings
-export type UserRole = 'admin' | 'supervisor' | 'analista';
+export type UserRole = 'admin' | 'supervisor' | 'analista' | 'guest';
 export type Mcc = MCC;
 export interface FraudRule {
   id?: string;

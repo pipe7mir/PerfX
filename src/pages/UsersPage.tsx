@@ -17,6 +17,12 @@ export default function UsersPage() {
   // Obtener la versión más actualizada del usuario actual desde la base de datos
   const currentUser = users.find(u => u.email === authUser?.email) || authUser;
 
+  const formatName = (email: string | undefined) => {
+    if (!email) return 'Administrador';
+    const namePart = email.split('@')[0];
+    return namePart.split('.').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+  };
+
   const visibleUsers = currentUser?.role === 'admin' 
     ? users 
     : users.filter(u => u.email === currentUser?.email || u.id === currentUser?.id);
@@ -116,8 +122,9 @@ export default function UsersPage() {
               
               <div className="pb-2 hidden md:block">
                 <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
-                  {currentUser?.email || 'Administrador'}
+                  {formatName(currentUser?.email)}
                 </h1>
+                <p className="text-sm text-slate-500 font-medium">{currentUser?.email}</p>
                 <p className="text-[13px] font-bold text-blue-600 mt-1 uppercase tracking-widest flex items-center gap-2">
                   {currentUser?.role === 'admin' && <ShieldCheck className="w-4 h-4" />}
                   {currentUser?.role || 'System Admin'}
@@ -153,8 +160,9 @@ export default function UsersPage() {
           {/* Info del Usuario Logueado (Mobile) */}
           <div className="md:hidden text-center mt-4">
             <h1 className="text-2xl font-bold text-slate-800 truncate">
-              {currentUser?.email || 'Administrador'}
+              {formatName(currentUser?.email)}
             </h1>
+            <p className="text-xs text-slate-500 font-medium">{currentUser?.email}</p>
             <p className="text-[12px] font-bold text-blue-600 mt-1.5 uppercase tracking-widest flex items-center justify-center gap-1.5">
               {currentUser?.role === 'admin' && <ShieldCheck className="w-3.5 h-3.5" />}
               {currentUser?.role || 'System Admin'}
@@ -228,9 +236,12 @@ export default function UsersPage() {
                   )}
                 </div>
                 
-                <h3 className="text-[15px] font-bold text-slate-800 truncate w-full mb-1.5">
-                  {u.email}
+                <h3 className="text-[15px] font-bold text-slate-800 truncate w-full mb-0.5">
+                  {formatName(u.email)}
                 </h3>
+                <p className="text-[11px] text-slate-400 font-medium truncate w-full mb-1.5">
+                  {u.email}
+                </p>
                 
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100/80 text-slate-600 text-[10px] font-bold uppercase tracking-widest mb-6 border border-slate-200/50">
                   {u.role === 'admin' && <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />}

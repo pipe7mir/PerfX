@@ -281,7 +281,18 @@ export default function LoginPage() {
                       type="text"
                       placeholder="Ej. Juan Pérez"
                       value={name}
-                      onChange={e => setName(e.target.value)}
+                      onChange={e => {
+                        setName(e.target.value);
+                        const parts = e.target.value.trim().split(/\s+/);
+                        if (parts.length >= 2) {
+                          const base = `${parts[0].toLowerCase()}.${parts[parts.length-1].toLowerCase()}`;
+                          setEmail(`${base}@perfx.io`);
+                        } else if (parts.length === 1 && parts[0]) {
+                          setEmail(`${parts[0].toLowerCase()}@perfx.io`);
+                        } else {
+                          setEmail('');
+                        }
+                      }}
                       className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
                     />
                   </div>
@@ -289,18 +300,18 @@ export default function LoginPage() {
 
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    Correo Electrónico
+                    Identificador Generado
                   </label>
                   <div className="relative flex items-center">
                     <div className="absolute left-4 text-slate-400">
                       <Mail className="w-4 h-4" strokeWidth={2} />
                     </div>
                     <input
-                      type="email"
-                      placeholder="correo@empresa.com"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
+                      type="text"
+                      readOnly
+                      placeholder="Se generará automáticamente"
+                      value={email ? email.replace('@perfx.io', '') : ''}
+                      className="w-full bg-slate-100 text-sm font-bold font-mono text-slate-800 rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none border border-slate-200 cursor-not-allowed opacity-80"
                     />
                   </div>
                 </div>
