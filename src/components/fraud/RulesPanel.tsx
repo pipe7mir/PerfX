@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
-import { RotateCcw, Plus, Trash2, GitBranch, ArrowRight, X, AlertTriangle, ShieldAlert, Activity, Check } from 'lucide-react';
+import { RotateCcw, Plus, Trash2, GitBranch, X, ShieldAlert, Activity, Check } from 'lucide-react';
 import { useRules } from '../../context/RulesContext';
 import Card from '../ui/GlassCard';
-import PerfxInput from '../ui/NeonInput';
 import PerfxButton from '../ui/NeonButton';
 import ToggleSwitch from '../ui/ToggleSwitch';
 import { motion, AnimatePresence } from 'framer-motion';
