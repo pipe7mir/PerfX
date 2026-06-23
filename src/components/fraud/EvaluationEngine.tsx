@@ -2,10 +2,35 @@ import { useState, useEffect, useRef } from 'react';
 import { Zap, ShieldCheck, Search, Building2, CreditCard, Activity, CheckCircle, AlertTriangle, XCircle, Plus, Database, MessageSquareText, TrendingUp, PieChart as PieChartIcon, User, Briefcase, Info } from 'lucide-react';
 import gsap from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { api } from '../../services/api';
 import type { EvaluationInput, EvaluationResult, MCC } from '../../types';
 import { useMCC } from '../../context/MCCContext';
+
+const APPROVED_VARIANTS = [
+  (hasContact: boolean, contactText: string) =>
+    `La operación tiene buen pronóstico. No se detectaron señales de riesgo que justifiquen una revisión manual.${hasContact ? contactText : ''} Se puede procesar sin fricciones.`,
+  (hasContact: boolean, contactText: string) =>
+    `Todo en orden. Los patrones de la transacción coinciden con el comportamiento esperado del comercio.${hasContact ? contactText : ''} El pago queda aprobado automáticamente.`,
+  (hasContact: boolean, contactText: string) =>
+    `Sin indicios de fraude. El perfil del cliente y el historial del comercio no presentan anomalías.${hasContact ? contactText : ''} Riesgo bajo, transacción fluida.`,
+];
+const REVIEW_VARIANTS = [
+  (mainReasons: string, score: number, contactText: string) =>
+    `Algo no cuadra del todo (Score: ${score}). Los factores que llaman la atención son: ${mainReasons}.${contactText} Vale la pena hacer una llamada de verificación antes de liberar los fondos.`,
+  (mainReasons: string, score: number, contactText: string) =>
+    `Riesgo moderado-alto detectado (Score: ${score}). Puntos de atención: ${mainReasons}.${contactText} Recomendamos contactar al cliente para confirmar la operación.`,
+  (mainReasons: string, score: number, contactText: string) =>
+    `Señales mixtas en esta transacción (Score: ${score}). Lo que más preocupa: ${mainReasons}.${contactText} Una confirmación con el titular ayudaría a disipar dudas.`,
+];
+const REJECT_VARIANTS = [
+  (contactText: string) =>
+    `Riesgo crítico. La combinación de factores activados indica un intento de fraude con alta probabilidad.${contactText} Se debe rechazar sin contacto con el emisor.`,
+  (contactText: string) =>
+    `Múltiples alertas de fraude coinciden en esta operación. El sistema recomienda bloqueo automático.${contactText} No intentar contacto con el cliente para evitar alertar a posibles atacantes.`,
+  (contactText: string) =>
+    `Operación de alto riesgo. Los indicadores superan todos los umbrales de seguridad establecidos.${contactText} Rechazar inmediatamente y registrar para análisis forense posterior.`,
+];
 
 const getHumanExplanation = (result: EvaluationResult) => {
   const hasContact = result.historicalFrequency > 0;
@@ -13,16 +38,19 @@ const getHumanExplanation = (result: EvaluationResult) => {
     ? ` (máx. histórico: $${result.historicalMax.toLocaleString('es-CO')})`
     : '';
   const contactText = hasContact 
-    ? ` El historial de contacto previo positivo${maxFmt} ha ayudado a mitigar el perfil de riesgo.`
-    : ' La falta de contacto previo con este comercio eleva la incertidumbre de la operación.';
+    ? ` El historial de contacto previo positivo${maxFmt} respalda la operación.`
+    : ' La falta de contacto previo incrementa la incertidumbre.';
 
   if (result.verdict === 'APROBAR_TRX') {
-    return `La transacción muestra un comportamiento habitual y no presenta señales de alerta.${hasContact ? contactText : ''} El riesgo calculado es suficientemente bajo como para procesar el pago de inmediato, ofreciendo una experiencia sin fricciones al cliente.`;
+    const variant = APPROVED_VARIANTS[Math.floor(Math.random() * APPROVED_VARIANTS.length)];
+    return variant(hasContact, contactText);
   } else if (result.verdict === 'CONTACTAR_CLIENTE') {
     const mainReasons = result.triggeredRules.filter(r => r.score > 0).map(r => r.ruleName.toLowerCase()).join(' y ');
-    return `Se ha detectado un nivel de riesgo inusual (Score: ${result.riskScore}), impulsado principalmente por: ${mainReasons || 'factores anómalos'}.${contactText} Sugerimos pausar el proceso y contactar al cliente para confirmar su identidad y la legitimidad de esta compra.`;
+    const variant = REVIEW_VARIANTS[Math.floor(Math.random() * REVIEW_VARIANTS.length)];
+    return variant(mainReasons || 'factores anómalos', result.riskScore, contactText);
   } else {
-    return `Alerta crítica de fraude (Score: ${result.riskScore}). Existen múltiples indicadores de alto riesgo que comprometen la seguridad de la operación.${contactText} Se recomienda rechazar la transacción inmediatamente y no contactar al cliente, ya que podría tratarse de un ataque automatizado o de suplantación confirmada.`;
+    const variant = REJECT_VARIANTS[Math.floor(Math.random() * REJECT_VARIANTS.length)];
+    return variant(contactText);
   }
 };
 
@@ -588,7 +616,7 @@ export default function EvaluationEngine() {
                   {result.transactionId && (
                     <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg w-fit border border-slate-200 mx-auto md:mx-0">
                       <Database className="w-3.5 h-3.5 text-blue-500" />
-                      Evaluación guardada en BD
+                      Evaluación guardada en la base de datos
                     </div>
                   )}
                 </div>
@@ -742,45 +770,36 @@ export default function EvaluationEngine() {
                     </div>
                   </div>
 
-                  {/* Gráfico de Distribución */}
+                  {/* Gráfico Comparativo: Transacción vs Umbrales */}
                   <div className="bg-white dark:bg-[#11175c] rounded-2xl border border-slate-100 dark:border-[#0B104A] p-4 shadow-sm flex flex-col">
                     <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                       <PieChartIcon className="w-3.5 h-3.5 text-indigo-500" />
-                      Distribución del Score
+                      Análisis Multicriterio
                     </h4>
-                    <div className="flex-1 min-h-[160px] w-full relative flex items-center justify-center">
+                    <div className="flex-1 min-h-[160px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={result.triggeredRules.map(r => ({...r, positiveScore: Math.max(0, r.score)}))}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={45}
-                            outerRadius={65}
-                            paddingAngle={2}
-                            dataKey="positiveScore"
-                            animationDuration={1500}
-                            stroke="none"
-                          >
-                            {result.triggeredRules.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={
-                                entry.alertLevel === 'critical' ? '#ef4444' :
-                                entry.alertLevel === 'high' ? '#f59e0b' : 
-                                entry.score < 0 ? '#10b981' : '#3b82f6'
-                              } />
-                            ))}
-                          </Pie>
-                          <Tooltip 
-                            contentStyle={{ borderRadius: '12px', border: 'none', backgroundColor: '#1e293b', color: '#fff', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2)', fontSize: '12px', fontWeight: 'bold', padding: '10px' }}
-                            itemStyle={{ color: '#fff' }}
-                            formatter={(value: any) => [`${value} pts`, 'Aporte']}
+                        <RadarChart data={(() => {
+                          const mccScore = result.triggeredRules.find(r => r.ruleId === 'base-mcc-risk');
+                          return [
+                            { dimension: 'Valor TRX', actual: Math.min(100, (result.currentValue / Math.max(result.historicalMax, 1)) * 50), max: 50 },
+                            { dimension: 'Frecuencia', actual: Math.min(100, result.currentFrequency * 15), max: 100 },
+                            { dimension: 'Riesgo MCC', actual: mccScore ? mccScore.score : 0, max: 35 },
+                            { dimension: 'Contacto Previo', actual: result.historicalFrequency > 0 ? 0 : 80, max: 80 },
+                            { dimension: 'Canal', actual: 0, max: 25 },
+                          ];
+                        })()} cx="50%" cy="50%" outerRadius="72%" animationDuration={1500}>
+                          <PolarGrid stroke="#e2e8f0" />
+                          <PolarAngleAxis dataKey="dimension" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} />
+                          <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 8, fill: '#cbd5e1' }} tickCount={4} />
+                          <Radar name="Transacción Actual" dataKey="actual" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} strokeWidth={2} />
+                          <Radar name="Umbral Máximo" dataKey="max" stroke="#cbd5e1" fill="#cbd5e1" fillOpacity={0.05} strokeWidth={1.5} strokeDasharray="4 3" />
+                          <Tooltip
+                            contentStyle={{ borderRadius: '12px', border: 'none', backgroundColor: '#1e293b', color: '#fff', fontSize: '12px', fontWeight: 'bold', padding: '10px' }}
+                            itemStyle={{ color: '#94a3b8' }}
+                            labelStyle={{ color: '#fff', fontWeight: 800, marginBottom: 4 }}
                           />
-                        </PieChart>
+                        </RadarChart>
                       </ResponsiveContainer>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                        <span className="text-2xl font-black text-slate-800 dark:text-white leading-none">{result.riskScore}</span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">Total</span>
-                      </div>
                     </div>
                   </div>
 

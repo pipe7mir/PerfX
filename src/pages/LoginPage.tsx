@@ -198,7 +198,7 @@ export default function LoginPage() {
           <div className="mb-8 flex flex-col items-center text-center">
             <PerfxLogo variant="static-dark" className="mb-2" />
             <p className="text-[10px] text-slate-400 mt-1 tracking-widest uppercase font-bold">
-              {mode === 'LOGIN' && 'Ingrese a su panel operativo'}
+              {mode === 'LOGIN' && 'Acceda a su panel operativo'}
               {mode === 'REGISTER' && 'Creación de Cuenta'}
               {mode === 'MFA' && 'Verificación de Seguridad 2FA'}
             </p>
@@ -230,7 +230,7 @@ export default function LoginPage() {
                       }}
                       className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-navy-900 transition-colors relative z-10"
                     >
-                      Ingresar con otra cuenta
+                      Iniciar sesión con otra cuenta
                     </button>
                   </div>
                 ) : (
