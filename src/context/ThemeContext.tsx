@@ -14,10 +14,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('perfx_theme');
     if (savedTheme === 'dark' || savedTheme === 'light') return savedTheme;
-    // Auto-detect preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
+    
+    // Default base color mode to light to prevent unexpected dark themes
     return 'light';
   });
 

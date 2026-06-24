@@ -107,7 +107,7 @@ export const Smart2FA: React.FC<Smart2FAProps> = ({ onVerifyTOTP, onVerifyBiomet
           </div>
         ) : (
           <div className="flex flex-col items-center w-full animate-in fade-in duration-500">
-            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 backdrop-blur-sm">
+            <div className="w-16 h-16 bg-white dark:bg-navy-800/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 backdrop-blur-sm">
               <Lock className="w-8 h-8 text-cyan-400" />
             </div>
             <h3 className="text-xl font-bold text-white mb-2 text-center">Autenticador</h3>
@@ -136,7 +136,7 @@ export const Smart2FA: React.FC<Smart2FAProps> = ({ onVerifyTOTP, onVerifyBiomet
                 type="button"
                 onClick={handleTotpSubmit}
                 disabled={totpCode.length !== 6 || isProcessing}
-                className="w-full bg-white text-navy-900 hover:bg-slate-100 disabled:bg-white/50 disabled:cursor-not-allowed font-bold py-4 rounded-2xl transition-colors shadow-lg shadow-black/20"
+                className="w-full bg-white dark:bg-navy-800 text-navy-900 dark:text-white hover:bg-slate-100 dark:hover:bg-navy-700 dark:bg-navy-800 disabled:bg-white dark:bg-navy-800/50 disabled:cursor-not-allowed font-bold py-4 rounded-2xl transition-colors shadow-lg shadow-black/20"
               >
                 {isProcessing ? 'Verificando...' : 'Verificar Código'}
               </button>

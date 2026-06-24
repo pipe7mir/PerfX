@@ -42,16 +42,16 @@ export default function ProfilePage() {
                 <p className="text-slate-500 font-medium">Gestiona tu información personal y credenciales de acceso.</p>
             </header>
 
-            <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-navy-800 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-100 dark:border-white/10 overflow-hidden">
                 <div className="h-32 bg-[#0B104A] relative">
                     {/* Botón de editar avatar */}
                     <input type="file" className="hidden" ref={fileInputRef} accept="image/*" onChange={handleAvatarChange} />
                     <button 
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isUploading}
-                        className="absolute -bottom-10 left-8 w-24 h-24 bg-white rounded-full p-1 shadow-lg group disabled:opacity-70"
+                        className="absolute -bottom-10 left-8 w-24 h-24 bg-white dark:bg-navy-800 rounded-full p-1 shadow-lg group disabled:opacity-70"
                     >
-                        <div className="w-full h-full rounded-full bg-slate-100 overflow-hidden relative flex items-center justify-center">
+                        <div className="w-full h-full rounded-full bg-slate-100 dark:bg-navy-800 overflow-hidden relative flex items-center justify-center">
                             {isUploading ? (
                                 <Loader2 className="w-8 h-8 text-[#0B104A] animate-spin" />
                             ) : user?.avatar_url ? (
@@ -74,7 +74,7 @@ export default function ProfilePage() {
                         </div>
                         <button 
                             onClick={() => setIsEditing(!isEditing)}
-                            className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors"
+                            className="px-6 py-2 bg-slate-100 dark:bg-navy-800 hover:bg-slate-200 text-slate-700 dark:text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors"
                         >
                             {isEditing ? 'Cancelar' : 'Editar Perfil'}
                         </button>
@@ -132,7 +132,7 @@ export default function ProfilePage() {
                         <motion.div 
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="mt-8 pt-6 border-t border-slate-100 flex justify-end"
+                            className="mt-8 pt-6 border-t border-slate-100 dark:border-white/10 flex justify-end"
                         >
                             <button 
                                 onClick={() => setIsEditing(false)}

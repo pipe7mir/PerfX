@@ -58,13 +58,13 @@ export default function ChangePasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-[500px] bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col p-10 lg:p-14 relative">
+    <div className="min-h-screen bg-slate-50 dark:bg-navy-800 flex items-center justify-center p-4 font-sans">
+      <div className="w-full max-w-[500px] bg-white dark:bg-navy-800 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col p-10 lg:p-14 relative">
         <div className="mb-10 text-center">
           <div className="w-12 h-12 rounded-2xl bg-coral-500 mx-auto flex items-center justify-center mb-5 shadow-soft-md shadow-coral-500/30">
             <Shield className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">
             Cambio de Clave Obligatorio
           </h1>
           <p className="text-[11px] text-slate-500 mt-2 tracking-widest uppercase font-bold leading-relaxed">
@@ -86,7 +86,7 @@ export default function ChangePasswordPage() {
                 placeholder="Mínimo 6 caracteres"
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
-                className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-11 py-3.5 focus:outline-none focus:ring-2 focus:ring-coral-500/20 transition-all border border-slate-100"
+                className="w-full bg-slate-50 dark:bg-navy-800 text-sm font-medium text-slate-800 dark:text-white rounded-2xl pl-11 pr-11 py-3.5 focus:outline-none focus:ring-2 focus:ring-coral-500/20 transition-all border border-slate-100 dark:border-white/10"
               />
               <button
                 type="button"
@@ -111,7 +111,7 @@ export default function ChangePasswordPage() {
                 placeholder="Repetir nueva clave"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
-                className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-coral-500/20 transition-all border border-slate-100"
+                className="w-full bg-slate-50 dark:bg-navy-800 text-sm font-medium text-slate-800 dark:text-white rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-coral-500/20 transition-all border border-slate-100 dark:border-white/10"
               />
             </div>
           </div>

@@ -115,18 +115,18 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300 animate-in fade-in">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100" role="dialog">
+      <div className="bg-white dark:bg-navy-800 w-full max-w-md rounded-2xl shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/10" role="dialog">
 
         {/* Botón de Cierre Flotante */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-20 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all rounded-full"
+          className="absolute top-3 right-3 z-20 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-navy-700 dark:bg-navy-800 transition-all rounded-full"
         >
           <X className="w-5 h-5" strokeWidth={2.5} />
         </button>
 
         {/* Encabezado Estilo Red Social (Banner + Avatar Integrado) */}
-        <div className="relative h-32 border-b border-slate-100 flex items-center justify-center bg-slate-900 overflow-hidden">
+        <div className="relative h-32 border-b border-slate-100 dark:border-white/10 flex items-center justify-center bg-slate-900 overflow-hidden">
           {/* Cover Photo */}
           {previewCoverUrl ? (
             <img src={previewCoverUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
@@ -141,8 +141,8 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
           </label>
 
           <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
-            <div className="relative group w-24 h-24 bg-white rounded-full p-1 shadow-md border border-slate-100 transition-transform duration-200 hover:scale-105">
-              <div className="w-full h-full rounded-full bg-slate-50 overflow-hidden flex items-center justify-center border border-slate-200/60">
+            <div className="relative group w-24 h-24 bg-white dark:bg-navy-800 rounded-full p-1 shadow-md border border-slate-100 dark:border-white/10 transition-transform duration-200 hover:scale-105">
+              <div className="w-full h-full rounded-full bg-slate-50 dark:bg-navy-800 overflow-hidden flex items-center justify-center border border-slate-200 dark:border-white/10/60">
                 {previewUrl ? (
                   <img src={previewUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -166,7 +166,7 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
         {/* Cuerpo del Formulario */}
         <div className="p-6 pt-12">
           <div className="text-center mb-6">
-            <h2 className="text-slate-800 font-bold text-lg tracking-tight">
+            <h2 className="text-slate-800 dark:text-white font-bold text-lg tracking-tight">
               {isEditing ? 'Modificar Perfil' : 'Nuevo Miembro'}
             </h2>
             <p className="text-slate-400 text-xs mt-1">
@@ -180,7 +180,7 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                   Nombres y Apellidos
                 </label>
-                <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
                   <User className="w-4 h-4 text-slate-400 shrink-0" />
                   <input
                     type="text"
@@ -199,7 +199,7 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
                         setEmail('');
                       }
                     }}
-                    className="w-full bg-transparent text-[14px] text-slate-800 placeholder-slate-400 focus:outline-none"
+                    className="w-full bg-transparent text-[14px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none"
                   />
                 </div>
               </div>
@@ -210,7 +210,7 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                 {isEditing ? 'Identificador' : 'Identificador Generado'}
               </label>
-              <div className="flex items-center gap-2.5 bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-2.5 opacity-80">
+              <div className="flex items-center gap-2.5 bg-slate-100 dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 opacity-80">
                 <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                 <input
                   type="text"
@@ -218,7 +218,7 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
                   placeholder={isEditing ? email : "Se generará automáticamente"}
                   value={email ? email.replace('@perfx.io', '') : ''}
                   readOnly
-                  className="w-full bg-transparent text-[14px] font-mono font-bold text-slate-800 placeholder-slate-400 focus:outline-none cursor-not-allowed"
+                  className="w-full bg-transparent text-[14px] font-mono font-bold text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none cursor-not-allowed"
                 />
               </div>
             </div>
@@ -228,12 +228,12 @@ export const UserCenteredForm: React.FC<UserCenteredFormProps> = ({ isOpen, onCl
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                 Rol en el Sistema
               </label>
-              <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 relative">
+              <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 relative">
                 <ShieldAlert className="w-4 h-4 text-slate-400 shrink-0" />
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="w-full bg-transparent text-[14px] text-slate-800 focus:outline-none appearance-none pr-4 font-medium cursor-pointer"
+                  className="w-full bg-transparent text-[14px] text-slate-800 dark:text-white focus:outline-none appearance-none pr-4 font-medium cursor-pointer"
                 >
                   <option value="guest">Invitado (GUEST)</option>
                   <option value="analista">Analista de Fraude</option>

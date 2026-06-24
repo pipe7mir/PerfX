@@ -64,10 +64,10 @@ export default function AuditPage() {
             </thead>
             <tbody>
               {evaluations.map((ev) => (
-                <tr key={ev.id} className="bg-white/50 hover:bg-white/70 transition-colors duration-200 group">
-                  <td className="py-4 px-4 text-sm text-navy-500 rounded-l-2xl group-hover:text-navy-700">{new Date(ev.created_at).toLocaleString()}</td>
-                  <td className="py-4 px-4 text-sm font-mono text-navy-900">{ev.transaction_id.slice(0, 8)}...</td>
-                  <td className="py-4 px-4 text-sm font-semibold text-navy-900">
+                <tr key={ev.id} className="bg-white/50 dark:bg-navy-800/50 hover:bg-white/70 dark:hover:bg-navy-700 transition-colors duration-200 group">
+                  <td className="py-4 px-4 text-sm text-navy-500 dark:text-navy-300 rounded-l-2xl group-hover:text-navy-700 dark:hover:text-white dark:group-hover:text-white">{new Date(ev.created_at).toLocaleString()}</td>
+                  <td className="py-4 px-4 text-sm font-mono text-navy-900 dark:text-white">{ev.transaction_id.slice(0, 8)}...</td>
+                  <td className="py-4 px-4 text-sm font-semibold text-navy-900 dark:text-white">
                     {ev.amount.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}
                   </td>
                   <td className="py-4 px-4 text-sm text-navy-600">
@@ -109,27 +109,27 @@ export default function AuditPage() {
         {selectedEvaluation && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Monto de TRX</p>
-                <p className="text-sm font-semibold text-slate-800">{selectedEvaluation.amount.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</p>
+              <div className="p-3 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-white/10 rounded-xl">
+                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Monto de TRX</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-white">{selectedEvaluation.amount.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 })}</p>
               </div>
-              <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Score Total</p>
-                <p className="text-sm font-semibold text-slate-800">{selectedEvaluation.calculated_risk_score} Puntos</p>
+              <div className="p-3 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-white/10 rounded-xl">
+                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-1">Score Total</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-white">{selectedEvaluation.calculated_risk_score} Puntos</p>
               </div>
             </div>
             
-            <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Veredicto</p>
+            <div className="p-4 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-white/10 rounded-xl">
+              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-2">Veredicto</p>
               <div className={`w-fit ${getVerdictStyle(selectedEvaluation.verdict)}`}>
                 {getVerdictIcon(selectedEvaluation.verdict)}
                 {selectedEvaluation.verdict}
               </div>
             </div>
 
-            <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Reglas Aplicadas / Análisis</p>
-              <div className="text-sm text-slate-700 bg-white p-3 rounded-lg border border-slate-200">
+            <div className="p-4 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-white/10 rounded-xl">
+              <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider mb-2">Reglas Aplicadas / Análisis</p>
+              <div className="text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-navy-800 p-3 rounded-lg border border-slate-200 dark:border-white/10">
                 {selectedEvaluation.applied_rules 
                   ? (Array.isArray(selectedEvaluation.applied_rules) ? selectedEvaluation.applied_rules.map((r: any, i: number) => (
                       <div key={i} className="mb-2 last:mb-0">

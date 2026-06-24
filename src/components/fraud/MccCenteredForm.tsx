@@ -50,7 +50,7 @@ export const MccCenteredForm: React.FC<MccCenteredFormProps> = ({ isOpen, onClos
       >
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-navy-400 hover:text-navy-900 dark:hover:text-cyan-neon transition-colors rounded-full"
+          className="absolute top-4 right-4 p-2 text-navy-400 hover:text-navy-900 dark:text-white dark:hover:text-cyan-neon transition-colors rounded-full"
           aria-label="Cerrar modal"
         >
           <X className="w-5 h-5" strokeWidth={1.5} />

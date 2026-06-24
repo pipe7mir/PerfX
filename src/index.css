@@ -97,7 +97,7 @@
 }
 
 @utility card {
-  @apply bg-white/70 backdrop-blur-xl rounded-3xl border border-slate-200/60 transition-all duration-300 ease-in-out;
+  @apply bg-white/70 dark:bg-navy-800 backdrop-blur-xl rounded-3xl border border-slate-200/60 dark:border-white/5 transition-all duration-300 ease-in-out;
   box-shadow: var(--shadow-soft-md);
 }
 
@@ -124,7 +124,7 @@
 }
 
 @utility card-flat {
-  @apply bg-white/70 backdrop-blur-xl rounded-2xl border border-slate-200/60 transition-all duration-300 ease-in-out;
+  @apply bg-white/70 dark:bg-navy-800 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-white/5 transition-all duration-300 ease-in-out;
 }
 
 @utility input-perfx {

@@ -184,10 +184,10 @@ export default function SettingsPage() {
             {/* Modal de Configuración 2FA */}
             {show2FAModal && (
                 <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 relative animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-navy-800 rounded-3xl shadow-2xl max-w-sm w-full p-6 relative animate-in zoom-in-95 duration-200">
                         <button 
                             onClick={() => setShow2FAModal(false)}
-                            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 p-2 rounded-full"
+                            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 dark:bg-navy-800 p-2 rounded-full"
                         >
                             <X className="w-4 h-4" />
                         </button>
@@ -203,7 +203,7 @@ export default function SettingsPage() {
                         </div>
 
                         {qrCodeUrl ? (
-                            <div className="flex justify-center mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div className="flex justify-center mb-6 bg-slate-50 dark:bg-navy-800 p-4 rounded-2xl border border-slate-100 dark:border-white/10">
                                 <img src={qrCodeUrl} alt="2FA QR Code" className="w-40 h-40" />
                             </div>
                         ) : (
@@ -222,7 +222,7 @@ export default function SettingsPage() {
                                     placeholder="Código de 6 dígitos"
                                     value={totpCode}
                                     onChange={e => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                    className="w-full bg-slate-50 text-center tracking-[0.5em] text-lg font-mono font-bold text-slate-800 rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
+                                    className="w-full bg-slate-50 dark:bg-navy-800 text-center tracking-[0.5em] text-lg font-mono font-bold text-slate-800 dark:text-white rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100 dark:border-white/10"
                                 />
                             </div>
                             <button

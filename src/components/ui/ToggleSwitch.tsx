@@ -22,7 +22,7 @@ export default function ToggleSwitch({ label, checked, onChange, description }: 
           peer-checked:after:translate-x-5 peer-checked:after:bg-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <span className="text-sm font-medium text-navy-700 group-hover:text-navy-900 transition-colors">
+        <span className="text-sm font-medium text-navy-700 dark:text-white group-hover:text-navy-900 dark:group-hover:text-white dark:hover:text-white dark:text-white transition-colors">
           {label}
         </span>
         {description && <p className="text-xs text-navy-400 mt-0.5 leading-relaxed">{description}</p>}

@@ -19,8 +19,10 @@ export interface EvaluationInput {
   priorContactCount: number;
   priorContactMaxValue: number;
   mccCode: string;
-  currentTrxValue: number;
+  merchantName?: string;
+  currentTrxValues: number[];
   trxCountLast24h: number;
+  clientType: 'NATURAL' | 'JURIDICA';
 }
 
 export interface RuleConfig {

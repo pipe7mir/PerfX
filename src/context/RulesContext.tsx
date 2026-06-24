@@ -117,23 +117,23 @@ export function RulesProvider({ children }: { children: ReactNode }) {
       if (!rule.enabled) continue;
       switch (rule.id) {
         case 'amount-deviation':
-          if (input.hasPriorContact && input.currentTrxValue > input.priorContactMaxValue * rule.threshold) {
-            const ratio = input.currentTrxValue / (input.priorContactMaxValue || 1);
+          if (input.hasPriorContact && input.currentTrxValues[0] > input.priorContactMaxValue * rule.threshold) {
+            const ratio = input.currentTrxValues[0] / (input.priorContactMaxValue || 1);
             results.push({
               ruleId: rule.id, ruleName: rule.name, alertLevel: 'high',
-              reason: `TRX actual ($${input.currentTrxValue.toLocaleString()}) supera ${rule.threshold}x el máximo histórico.`,
+              reason: `TRX actual ($${input.currentTrxValues[0].toLocaleString()}) supera ${rule.threshold}x el máximo histórico.`,
               score: Math.min(40, Math.round((ratio / 2) * rule.weight)),
             });
           }
           break;
         case 'unknown-merchant':
           if (!input.hasPriorContact) {
-            const sev = Math.min(1, input.currentTrxValue / rule.threshold);
+            const sev = Math.min(1, input.currentTrxValues[0] / rule.threshold);
             const score = Math.min(50, Math.round(sev * 40) + 15);
             results.push({
               ruleId: rule.id, ruleName: rule.name,
               alertLevel: score > 35 ? 'critical' : 'high',
-              reason: `Sin contacto previo. Monto elevado ($${input.currentTrxValue.toLocaleString()}).`,
+              reason: `Sin contacto previo. Monto elevado ($${input.currentTrxValues[0].toLocaleString()}).`,
               score,
             });
           }
@@ -146,6 +146,16 @@ export function RulesProvider({ children }: { children: ReactNode }) {
               alertLevel: excess > 5 ? 'critical' : 'high',
               reason: `${input.trxCountLast24h} TRX en 24h (umbral: ${rule.threshold}).`,
               score: Math.min(30, excess * 5 + 10),
+            });
+          }
+          break;
+        case 'amount-threshold':
+          if (input.currentTrxValues[0] > rule.threshold) {
+            results.push({
+              ruleId: rule.id, ruleName: rule.name,
+              alertLevel: 'high',
+              reason: `Monto (${input.currentTrxValues[0]}) supera el umbral de ${rule.threshold}`,
+              score: rule.weight,
             });
           }
           break;

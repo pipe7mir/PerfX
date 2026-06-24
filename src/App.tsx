@@ -10,6 +10,7 @@ import { MobileBottomNav } from './components/ui/MobileBottomNav';
 import LoginPage from './pages/LoginPage';
 import EvaluationPage from './pages/EvaluationPage';
 import MCCPage from './pages/MCCPage';
+import MccInsightsPage from './pages/MccInsightsPage';
 import RulesPage from './pages/RulesPage';
 import UsersPage from './pages/UsersPage';
 import AuditPage from './pages/AuditPage';
@@ -65,6 +66,19 @@ function ProtectedLayout() {
     return <Navigate to="/evaluate" replace />;
   }
 
+  /* ── RBAC Enforcements ───────────────────────────── */
+  const isGuest = user?.role === 'guest';
+  const isAdmin = user?.role === 'admin';
+  const allowedForGuest = ['/evaluate', '/change-password', '/profile'];
+
+  if (isGuest && !allowedForGuest.includes(location.pathname)) {
+    return <Navigate to="/evaluate" replace />;
+  }
+
+  if (!isAdmin && location.pathname === '/users') {
+    return <Navigate to="/evaluate" replace />;
+  }
+
   return (
     <div className="min-h-screen text-navy-800 dark:text-slate-200 bg-slate-50 dark:bg-abyssal transition-colors duration-300 relative">
       <Toaster position="top-center" reverseOrder={false} />
@@ -76,6 +90,7 @@ function ProtectedLayout() {
           <Routes location={location} key={location.pathname}>
             <Route path="/evaluate" element={<PageWrapper><EvaluationPage /></PageWrapper>} />
             <Route path="/mcc" element={<PageWrapper><MCCPage /></PageWrapper>} />
+            <Route path="/mcc-insights" element={<PageWrapper><MccInsightsPage /></PageWrapper>} />
             <Route path="/rules" element={<PageWrapper><RulesPage /></PageWrapper>} />
             <Route path="/users" element={<PageWrapper><UsersPage /></PageWrapper>} />
             <Route path="/audit" element={<PageWrapper><AuditPage /></PageWrapper>} />

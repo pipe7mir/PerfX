@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Shield, Search, Settings, LogOut, Users, FileText, UserCircle } from 'lucide-react';
+import { Shield, Search, Settings, LogOut, Users, FileText, UserCircle, BrainCircuit } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PerfxLogo } from '../../assets/PerfxLogo';
@@ -8,6 +8,7 @@ import { PerfxLogo } from '../../assets/PerfxLogo';
 const navItems = [
   { to: '/evaluate', icon: Shield, label: 'Evaluador' },
   { to: '/mcc', icon: Search, label: 'Catálogo MCC' },
+  { to: '/mcc-insights', icon: BrainCircuit, label: 'Aprendizaje IA' },
   { to: '/rules', icon: Settings, label: 'Reglas' },
   { to: '/users', icon: Users, label: 'Equipo', adminOnly: true },
   { to: '/audit', icon: FileText, label: 'Auditoría Forense' },
@@ -93,7 +94,7 @@ export default function Sidebar() {
                     <Link 
                       to="/profile" 
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
                     >
                       <UserCircle className="w-4 h-4 text-slate-400" />
                       Mi Perfil
@@ -101,7 +102,7 @@ export default function Sidebar() {
                     <Link 
                       to="/settings"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
                     >
                       <Settings className="w-4 h-4 text-slate-400" />
                       Configuración
@@ -114,7 +115,7 @@ export default function Sidebar() {
 
           <button
             onClick={logout}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm text-white/50 hover:text-coral-300 hover:bg-white/5 transition-all duration-200"
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm text-white/50 hover:text-coral-300 hover:bg-white/10 transition-all duration-200"
           >
             <LogOut className="w-[18px] h-[18px]" />
             Cerrar Sesión

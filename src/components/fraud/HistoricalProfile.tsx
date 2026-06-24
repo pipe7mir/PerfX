@@ -22,8 +22,8 @@ export default function HistoricalProfile({
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-navy-700 tracking-wide">Tipo de Transacción</span>
-        <div className="flex bg-slate-100/80 border border-slate-200/80 backdrop-blur-md rounded-2xl p-1 shadow-inner">
+        <span className="text-sm font-semibold text-navy-700 dark:text-white tracking-wide">Tipo de Transacción</span>
+        <div className="flex bg-slate-100 dark:bg-navy-800/80 border border-slate-200 dark:border-white/10/80 backdrop-blur-md rounded-2xl p-1 shadow-inner">
           {(['POS', 'INT'] as const).map(t => (
             <button
               key={t}
@@ -47,7 +47,7 @@ export default function HistoricalProfile({
       />
 
       {hasPriorContact && (
-        <div className="grid grid-cols-2 gap-4 pl-7 border-l-2 border-navy-200">
+        <div className="grid grid-cols-2 gap-4 pl-7 border-l-2 border-navy-200 dark:border-white/10">
           <PerfxInput
             label="Cantidad de veces"
             type="number" placeholder="Ej: 5" min="0"

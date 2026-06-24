@@ -49,11 +49,11 @@ export default function MCCManager() {
         {filtered.map(mcc => (
           <div
             key={mcc.code}
-            className="flex items-center gap-4 p-3.5 rounded-2xl bg-white/40 border border-white/60 shadow-soft-sm hover:shadow-soft-md hover:bg-white/60 hover:scale-[1.01] transition-all duration-300 backdrop-blur-md"
+            className="flex items-center gap-4 p-3.5 rounded-2xl bg-white dark:bg-navy-800/40 border border-white/60 shadow-soft-sm hover:shadow-soft-md hover:bg-white dark:hover:bg-navy-700 dark:bg-navy-800/60 hover:scale-[1.01] transition-all duration-300 backdrop-blur-md"
           >
             <span className="font-mono text-sm font-semibold text-navy-500 w-16">{mcc.code}</span>
-            <span className="flex-1 text-sm text-navy-700">{mcc.description}</span>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold border border-navy-200">
+            <span className="flex-1 text-sm text-navy-700 dark:text-white">{mcc.description}</span>
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold border border-navy-200 dark:border-white/10">
               {mcc.base_risk_score}
             </span>
             <button

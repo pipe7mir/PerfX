@@ -90,7 +90,7 @@ export default function UsersPage() {
   return (
     <div className="max-w-6xl mx-auto pb-12 relative animate-in fade-in duration-500">
       {/* Cabecera de Perfil (Cover) */}
-      <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden mb-8 border border-slate-100">
+      <div className="bg-white dark:bg-navy-800 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden mb-8 border border-slate-100 dark:border-white/10">
         {/* Portada Decorativa con Gradiente Mesh */}
         <div className="h-40 md:h-56 relative overflow-hidden bg-slate-900">
           {currentUser?.cover_url ? (
@@ -110,7 +110,7 @@ export default function UsersPage() {
           <div className="flex flex-col md:flex-row justify-between md:items-end -mt-16 md:-mt-20 mb-6 gap-6">
             <div className="flex items-end gap-6">
               <div className="relative group">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] border-white bg-slate-50 overflow-hidden shadow-xl flex items-center justify-center text-5xl font-bold text-slate-300 relative z-10 transition-transform duration-300 group-hover:scale-[1.02]">
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[6px] border-white bg-slate-50 dark:bg-navy-800 overflow-hidden shadow-xl flex items-center justify-center text-5xl font-bold text-slate-300 relative z-10 transition-transform duration-300 group-hover:scale-[1.02]">
                   {currentUser?.avatar_url ? (
                     <img src={currentUser?.avatar_url} alt="Mi Perfil" className="w-full h-full object-cover" />
                   ) : (
@@ -121,7 +121,7 @@ export default function UsersPage() {
               </div>
               
               <div className="pb-2 hidden md:block">
-                <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+                <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
                   {formatName(currentUser?.email)}
                 </h1>
                 <p className="text-sm text-slate-500 font-medium">{currentUser?.email}</p>
@@ -138,7 +138,7 @@ export default function UsersPage() {
                   setEditingUser(currentUser);
                   setShowForm(true);
                 }} 
-                className="bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-700 shadow-sm border border-slate-200 text-[14px] font-semibold px-6 py-3 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2.5 w-full md:w-auto"
+                className="bg-white dark:bg-navy-800 hover:bg-slate-50 dark:hover:bg-navy-700 dark:bg-navy-800 active:scale-[0.98] text-slate-700 dark:text-white shadow-sm border border-slate-200 dark:border-white/10 text-[14px] font-semibold px-6 py-3 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2.5 w-full md:w-auto"
               >
                 <Settings className="w-4 h-4" />
                 <span>Editar Mi Perfil</span>
@@ -159,7 +159,7 @@ export default function UsersPage() {
 
           {/* Info del Usuario Logueado (Mobile) */}
           <div className="md:hidden text-center mt-4">
-            <h1 className="text-2xl font-bold text-slate-800 truncate">
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-white truncate">
               {formatName(currentUser?.email)}
             </h1>
             <p className="text-xs text-slate-500 font-medium">{currentUser?.email}</p>
@@ -171,7 +171,7 @@ export default function UsersPage() {
         </div>
 
         {/* Pestañas (Tabs) */}
-        <div className="border-t border-slate-100 px-6 md:px-10 flex gap-8">
+        <div className="border-t border-slate-100 dark:border-white/10 px-6 md:px-10 flex gap-8">
           <button 
             className={`py-5 text-[14px] font-semibold transition-all relative flex items-center gap-2.5 ${activeTab === 'equipo' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-800'}`}
             onClick={() => setActiveTab('equipo')}
@@ -202,7 +202,7 @@ export default function UsersPage() {
           {visibleUsers.map((u, i) => (
             <div 
               key={u.id} 
-              className="bg-white rounded-3xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 relative group animate-in slide-in-from-bottom-4"
+              className="bg-white dark:bg-navy-800 rounded-3xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 dark:border-white/10 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 relative group animate-in slide-in-from-bottom-4"
               style={{ animationDelay: `${i * 50}ms` }}
             >
               {/* Show edit button if admin/supervisor, or if it's the current user's own card */}
@@ -210,7 +210,7 @@ export default function UsersPage() {
                 {(currentUser?.role === 'admin' || currentUser?.role === 'supervisor' || currentUser?.id === u.id) && (
                   <button 
                     onClick={() => handleEdit(u)}
-                    className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200 shadow-sm"
+                    className="p-2 bg-slate-50 dark:bg-navy-800 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200 shadow-sm"
                     title="Editar Perfil"
                   >
                     <Edit3 className="w-4 h-4" />
@@ -219,7 +219,7 @@ export default function UsersPage() {
                 {currentUser?.role === 'admin' && currentUser?.id !== u.id && (
                   <button 
                     onClick={() => handleDeleteUser(u.id, u.email)}
-                    className="p-2 bg-slate-50 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200 shadow-sm"
+                    className="p-2 bg-slate-50 dark:bg-navy-800 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-200 shadow-sm"
                     title="Eliminar Perfil"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -228,7 +228,7 @@ export default function UsersPage() {
               </div>
               
               <div className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-full border-[4px] border-slate-50 mb-5 overflow-hidden bg-slate-100 flex items-center justify-center text-2xl font-bold text-slate-400 shadow-sm relative group-hover:border-blue-50 transition-colors">
+                <div className="w-20 h-20 rounded-full border-[4px] border-slate-50 mb-5 overflow-hidden bg-slate-100 dark:bg-navy-800 flex items-center justify-center text-2xl font-bold text-slate-400 shadow-sm relative group-hover:border-blue-50 transition-colors">
                   {u.avatar_url ? (
                     <img src={u.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                   ) : (
@@ -236,19 +236,19 @@ export default function UsersPage() {
                   )}
                 </div>
                 
-                <h3 className="text-[15px] font-bold text-slate-800 truncate w-full mb-0.5">
+                <h3 className="text-[15px] font-bold text-slate-800 dark:text-white truncate w-full mb-0.5">
                   {formatName(u.email)}
                 </h3>
                 <p className="text-[11px] text-slate-400 font-medium truncate w-full mb-1.5">
                   {u.email}
                 </p>
                 
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100/80 text-slate-600 text-[10px] font-bold uppercase tracking-widest mb-6 border border-slate-200/50">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 dark:bg-navy-800/80 text-slate-600 text-[10px] font-bold uppercase tracking-widest mb-6 border border-slate-200 dark:border-white/10/50">
                   {u.role === 'admin' && <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />}
                   {u.role}
                 </span>
 
-                <div className="w-full flex items-center justify-between mt-auto pt-5 border-t border-slate-100">
+                <div className="w-full flex items-center justify-between mt-auto pt-5 border-t border-slate-100 dark:border-white/10">
                   <div className="flex flex-col items-start gap-1">
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Estado</span>
                     {u.is_active ? (
@@ -274,11 +274,11 @@ export default function UsersPage() {
 
       {/* Vistas mock para otras pestañas */}
       {activeTab === 'actividad' && (
-        <div className="bg-white rounded-3xl p-16 text-center shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100">
-          <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Activity className="w-10 h-10 text-slate-300" />
+        <div className="bg-white dark:bg-navy-800 rounded-3xl p-16 text-center shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 dark:border-white/10">
+          <div className="w-20 h-20 bg-slate-50 dark:bg-navy-900 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Activity className="w-10 h-10 text-slate-300 dark:text-slate-500" />
           </div>
-          <h3 className="text-xl font-bold text-slate-800 mb-2 tracking-tight">Sin Actividad Reciente</h3>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2 tracking-tight">Sin Actividad Reciente</h3>
           <p className="text-slate-500 text-[14px]">El historial de operaciones analíticas del equipo aparecerá aquí.</p>
         </div>
       )}

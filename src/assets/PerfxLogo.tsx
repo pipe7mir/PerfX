@@ -73,9 +73,7 @@ export const PerfxLogo: React.FC<PerfxLogoProps> = ({
                     <img
                         src={fullLogoSrc}
                         alt="PERFX Prevención de Fraude"
-                        width={400}
-                        height={200}
-                        className="object-contain drop-shadow-xl"
+                        className="w-64 md:w-80 lg:w-96 object-contain drop-shadow-xl"
                     />
                 </motion.div>
 

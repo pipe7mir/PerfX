@@ -1,35 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { Zap, ShieldCheck, Search, Building2, CreditCard, Activity, CheckCircle, AlertTriangle, XCircle, Plus, Database, MessageSquareText, TrendingUp, PieChart as PieChartIcon, User, Briefcase, Info } from 'lucide-react';
+import { Zap, ShieldCheck, Search, Building2, CreditCard, Activity, CheckCircle, AlertTriangle, XCircle, Plus, Database, MessageSquareText, TrendingUp, PieChart as PieChartIcon, User, Briefcase, Info, ThumbsUp, ThumbsDown, RefreshCw } from 'lucide-react';
 import gsap from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BarChart, Bar, PieChart, Pie, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, Cell } from 'recharts';
 import { api } from '../../services/api';
 import type { EvaluationInput, EvaluationResult, MCC } from '../../types';
 import { useMCC } from '../../context/MCCContext';
 
 const APPROVED_VARIANTS = [
   (hasContact: boolean, contactText: string) =>
-    `La operación tiene buen pronóstico. No se detectaron señales de riesgo que justifiquen una revisión manual.${hasContact ? contactText : ''} Se puede procesar sin fricciones.`,
-  (hasContact: boolean, contactText: string) =>
-    `Todo en orden. Los patrones de la transacción coinciden con el comportamiento esperado del comercio.${hasContact ? contactText : ''} El pago queda aprobado automáticamente.`,
-  (hasContact: boolean, contactText: string) =>
-    `Sin indicios de fraude. El perfil del cliente y el historial del comercio no presentan anomalías.${hasContact ? contactText : ''} Riesgo bajo, transacción fluida.`,
+    `Procesar sin fricciones. No tiene riesgo.${hasContact ? contactText : ''}`
 ];
 const REVIEW_VARIANTS = [
   (mainReasons: string, score: number, contactText: string) =>
-    `Algo no cuadra del todo (Score: ${score}). Los factores que llaman la atención son: ${mainReasons}.${contactText} Vale la pena hacer una llamada de verificación antes de liberar los fondos.`,
-  (mainReasons: string, score: number, contactText: string) =>
-    `Riesgo moderado-alto detectado (Score: ${score}). Puntos de atención: ${mainReasons}.${contactText} Recomendamos contactar al cliente para confirmar la operación.`,
-  (mainReasons: string, score: number, contactText: string) =>
-    `Señales mixtas en esta transacción (Score: ${score}). Lo que más preocupa: ${mainReasons}.${contactText} Una confirmación con el titular ayudaría a disipar dudas.`,
+    `Comuníquese con el cliente por un riesgo latente (Score: ${score}). Factores: ${mainReasons}.${contactText}`
 ];
 const REJECT_VARIANTS = [
   (contactText: string) =>
-    `Riesgo crítico. La combinación de factores activados indica un intento de fraude con alta probabilidad.${contactText} Se debe rechazar sin contacto con el emisor.`,
-  (contactText: string) =>
-    `Múltiples alertas de fraude coinciden en esta operación. El sistema recomienda bloqueo automático.${contactText} No intentar contacto con el cliente para evitar alertar a posibles atacantes.`,
-  (contactText: string) =>
-    `Operación de alto riesgo. Los indicadores superan todos los umbrales de seguridad establecidos.${contactText} Rechazar inmediatamente y registrar para análisis forense posterior.`,
+    `Se recomienda bloquear el medio de pago y contactar al cliente.${contactText}`
 ];
 
 const getHumanExplanation = (result: EvaluationResult) => {
@@ -68,14 +56,25 @@ export default function EvaluationEngine() {
   const [mccSearch, setMccSearch] = useState('');
   const [selectedMccId, setSelectedMccId] = useState('');
   
-  const [currentTrxValue, setCurrentTrxValue] = useState<string>('');
+  const [currentTrxValues, setCurrentTrxValues] = useState<string[]>(['']);
   const [currency, setCurrency] = useState<'COP' | 'USD' | 'EUR'>('COP');
   const [trxCount24h, setTrxCount24h] = useState<string>('1');
+
+  const handleTrxCountChange = (val: string) => {
+    setTrxCount24h(val);
+    const count = parseInt(val, 10) || 1;
+    if (count > currentTrxValues.length) {
+      setCurrentTrxValues([...currentTrxValues, ...Array(count - currentTrxValues.length).fill('')]);
+    } else if (count < currentTrxValues.length && count > 0) {
+      setCurrentTrxValues(currentTrxValues.slice(0, count));
+    }
+  };
   
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<EvaluationResult & { transactionId?: string; processingTimeMs?: number } | null>(null);
   const [error, setError] = useState('');
   const [addedMessage, setAddedMessage] = useState('');
+  const [feedback, setFeedback] = useState<'useful' | 'not_useful' | null>(null);
 
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -85,10 +84,10 @@ export default function EvaluationEngine() {
   
   // Asumimos que si no es COP, convertimos rudimentariamente para la advertencia visual
   const getApproxValueCOP = () => {
-    const val = parseFloat(currentTrxValue) || 0;
-    if (currency === 'USD') return val * 4000;
-    if (currency === 'EUR') return val * 4400;
-    return val;
+    const sum = currentTrxValues.reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
+    if (currency === 'USD') return sum * 4000;
+    if (currency === 'EUR') return sum * 4400;
+    return sum;
   };
   const amountExceedsLimit = isStrictMode && getApproxValueCOP() > suggestedLimit;
 
@@ -149,10 +148,10 @@ export default function EvaluationEngine() {
 
     setLoading(true);
     try {
-      const baseValue = parseFloat(currentTrxValue) || 0;
-      let finalValueCOP = baseValue;
-      if (currency === 'USD') finalValueCOP = baseValue * 4000;
-      if (currency === 'EUR') finalValueCOP = baseValue * 4400;
+      const baseValues = currentTrxValues.map(v => parseFloat(v) || 0);
+      let finalValuesCOP = baseValues;
+      if (currency === 'USD') finalValuesCOP = baseValues.map(v => v * 4000);
+      if (currency === 'EUR') finalValuesCOP = baseValues.map(v => v * 4400);
 
       const maxHistValue = parseFloat(priorContactMaxValue) || 0;
       let finalMaxHistCOP = maxHistValue;
@@ -165,8 +164,10 @@ export default function EvaluationEngine() {
         priorContactCount: hasContact ? (parseInt(priorContactCount, 10) || 1) : 0,
         priorContactMaxValue: hasContact ? finalMaxHistCOP : 0,
         mccCode: selectedMccId,
-        currentTrxValue: finalValueCOP,
+        merchantName: merchantName || 'Desconocido',
+        currentTrxValues: finalValuesCOP,
         trxCountLast24h: parseInt(trxCount24h, 10) || 1,
+        clientType: clientType,
       };
       const res = await api.evaluate(payload);
       setResult(res);
@@ -178,15 +179,15 @@ export default function EvaluationEngine() {
 
   // UI Components
   const SegmentedControl = ({ options, active, onChange }: any) => (
-    <div className="flex bg-slate-100/80 p-1.5 rounded-2xl">
+    <div className="flex bg-slate-100 dark:bg-navy-800/80 p-1.5 rounded-2xl">
       {options.map((opt: any) => (
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
           className={`flex-1 flex items-center justify-center gap-2 py-3 px-2 text-sm font-bold rounded-xl transition-all duration-300 ${
             active === opt.value 
-              ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5' 
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'bg-white dark:bg-navy-800 text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10' 
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-navy-700/50'
           }`}
         >
           {opt.icon && <opt.icon className="w-4 h-4" />}
@@ -202,7 +203,7 @@ export default function EvaluationEngine() {
         
         {/* COLUMNA IZQUIERDA: Contexto de la Operación */}
         <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 shadow-sm border border-slate-100/50">
+          <div className="bg-white dark:bg-navy-800 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-white/10">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Contexto
             </h3>
@@ -210,7 +211,7 @@ export default function EvaluationEngine() {
             <div className="space-y-6">
               {/* Tipo de Cliente */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-3">Perfil del Cliente</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-white mb-3">Perfil del Cliente</label>
                 <SegmentedControl 
                   active={clientType} 
                   onChange={setClientType}
@@ -223,7 +224,7 @@ export default function EvaluationEngine() {
 
               {/* Canal Transaccional */}
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-3">Canal Transaccional</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-white mb-3">Canal Transaccional</label>
                 <SegmentedControl 
                   active={transactionType} 
                   onChange={setTransactionType}
@@ -236,19 +237,19 @@ export default function EvaluationEngine() {
 
               {/* Contacto Previo (Strict Mode Trigger) */}
               <div className="pt-2">
-                <div className="flex items-center justify-between p-5 bg-slate-50 rounded-3xl border border-slate-100 transition-colors hover:bg-slate-100/50">
+                <div className="flex items-center justify-between p-5 bg-slate-50 dark:bg-navy-800 rounded-3xl border border-slate-100 dark:border-white/10 transition-colors hover:bg-slate-100 dark:hover:bg-navy-700 dark:bg-navy-800/50">
                   <div className="flex items-center gap-4">
-                    <div className={`p-2.5 rounded-2xl ${hasContact ? 'bg-blue-100 text-blue-600' : 'bg-slate-200 text-slate-500'}`}>
+                    <div className={`p-2.5 rounded-2xl ${hasContact ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
                       <ShieldCheck className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-slate-800">¿Contacto previo?</h4>
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-white">¿Contacto previo?</h4>
                       <p className="text-[11px] text-slate-500 font-medium mt-0.5">Mitiga el riesgo de suplantación</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setHasContact(!hasContact)}
-                    className={`w-12 h-6 rounded-full transition-colors relative shadow-inner ${hasContact ? 'bg-blue-600' : 'bg-slate-300'}`}
+                    className={`w-12 h-6 rounded-full transition-colors relative shadow-inner ${hasContact ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-600'}`}
                   >
                     <div className={`w-4 h-4 rounded-full bg-white shadow-sm absolute top-1 transition-transform duration-300 ${hasContact ? 'translate-x-7' : 'translate-x-1'}`} />
                   </button>
@@ -287,7 +288,7 @@ export default function EvaluationEngine() {
                             min="1"
                             value={priorContactCount}
                             onChange={(e) => setPriorContactCount(e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded-2xl py-2.5 px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="w-full bg-white dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-2xl py-2.5 px-3 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                           />
                         </div>
                         <div>
@@ -297,7 +298,7 @@ export default function EvaluationEngine() {
                             min="0"
                             value={priorContactMaxValue}
                             onChange={(e) => setPriorContactMaxValue(e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded-2xl py-2.5 px-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                            className="w-full bg-white dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-2xl py-2.5 px-3 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                           />
                         </div>
                       </div>
@@ -311,7 +312,7 @@ export default function EvaluationEngine() {
 
         {/* COLUMNA DERECHA: Datos de la Transacción Actual */}
         <div className="lg:col-span-7 flex flex-col gap-6">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100/50">
+          <div className="bg-white dark:bg-navy-800 rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 dark:border-white/10">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Transacción
             </h3>
@@ -320,7 +321,7 @@ export default function EvaluationEngine() {
               
               {/* Buscador MCC Inteligente */}
               <div className="relative z-20">
-                <label className="block text-sm font-semibold text-slate-700 mb-3">Clasificación del Comercio (MCC)</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-white mb-3">Clasificación del Comercio (MCC)</label>
                 
                 <AnimatePresence mode="wait">
                   {!selectedMccId ? (
@@ -338,12 +339,12 @@ export default function EvaluationEngine() {
                         placeholder="Buscar por código o palabra clave..."
                         value={mccSearch}
                         onChange={(e) => setMccSearch(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                        className="w-full bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                       />
                       
                       {/* Dropdown Resultados */}
                       {mccSearch && (
-                        <div className="absolute w-full mt-2 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden z-50">
+                        <div className="absolute w-full mt-2 bg-white dark:bg-navy-800 border border-slate-100 dark:border-white/10 shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden z-50">
                           {filteredMccs.length > 0 ? (
                             filteredMccs.map(mcc => (
                               <button
@@ -352,10 +353,10 @@ export default function EvaluationEngine() {
                                   setSelectedMccId(mcc.code);
                                   setMccSearch(`${mcc.code} - ${mcc.description}`);
                                 }}
-                                className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-left"
+                                className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-navy-700 dark:bg-navy-800 transition-colors border-b border-slate-50 last:border-0 text-left"
                               >
                                 <div>
-                                  <p className="text-sm font-bold text-slate-800">{mcc.code}</p>
+                                  <p className="text-sm font-bold text-slate-800 dark:text-white">{mcc.code}</p>
                                   <p className="text-xs text-slate-500 font-medium">{mcc.description}</p>
                                 </div>
                                 <span className={`text-[10px] font-bold px-2 py-1 rounded-md border ${getRiskColor(mcc)}`}>
@@ -368,12 +369,12 @@ export default function EvaluationEngine() {
                               <p className="text-xs text-slate-400 font-medium mb-2">Código encontrado en catálogo global</p>
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <p className="text-sm font-bold text-slate-800">{mccSearch}</p>
+                                  <p className="text-sm font-bold text-slate-800 dark:text-white">{mccSearch}</p>
                                   <p className="text-xs text-slate-500 font-medium">{fullSuggestion}</p>
                                 </div>
                                 <button
                                   onClick={handleAddToCatalog}
-                                  className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-xl transition-colors"
+                                  className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 px-3 py-2 rounded-xl transition-colors"
                                 >
                                   <Plus className="w-3.5 h-3.5" /> Agregar
                                 </button>
@@ -393,13 +394,13 @@ export default function EvaluationEngine() {
                                       setMccSearch(`${s.code} - ${found}`);
                                     }
                                   }}
-                                  className="w-full flex items-center justify-between p-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 text-left pl-8"
+                                  className="w-full flex items-center justify-between p-3 hover:bg-slate-50 dark:hover:bg-navy-700 dark:bg-navy-800 transition-colors border-b border-slate-50 last:border-0 text-left pl-8"
                                 >
                                   <div>
-                                    <p className="text-sm font-bold text-slate-800">{s.code}</p>
+                                    <p className="text-sm font-bold text-slate-800 dark:text-white">{s.code}</p>
                                     <p className="text-xs text-slate-500 font-medium">{s.description}</p>
                                   </div>
-                                  <span className="text-[10px] font-bold px-2 py-1 rounded-md border text-slate-400 bg-slate-50 border-slate-200">
+                                  <span className="text-[10px] font-bold px-2 py-1 rounded-md border text-slate-400 bg-slate-50 dark:bg-navy-800 border-slate-200 dark:border-white/10">
                                     REF
                                   </span>
                                 </button>
@@ -422,7 +423,7 @@ export default function EvaluationEngine() {
                     >
                       <div className="bg-slate-800 text-white rounded-2xl p-4 shadow-md flex items-center justify-between group">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-xl bg-white dark:bg-navy-800/10 flex items-center justify-center shrink-0">
                             <Building2 className="w-5 h-5 text-blue-300" />
                           </div>
                           <div className="truncate">
@@ -432,7 +433,7 @@ export default function EvaluationEngine() {
                         </div>
                         <button 
                           onClick={() => { setSelectedMccId(''); setMccSearch(''); }}
-                          className="text-xs font-bold bg-white/10 hover:bg-white/20 px-3 py-2 rounded-xl transition-colors shrink-0"
+                          className="text-xs font-bold bg-white text-slate-800 dark:bg-navy-800/10 dark:text-white hover:bg-slate-100 dark:hover:bg-navy-700 px-3 py-2 rounded-xl transition-colors shrink-0"
                         >
                           Cambiar
                         </button>
@@ -455,7 +456,7 @@ export default function EvaluationEngine() {
                 {/* Nombre del Comercio */}
                 <div>
                   <div className="flex justify-between items-end mb-3">
-                    <label className="block text-sm font-semibold text-slate-700">Comercio</label>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-white">Comercio</label>
                     <span className="text-xs text-slate-400 font-medium">(Opcional)</span>
                   </div>
                   <input 
@@ -463,13 +464,13 @@ export default function EvaluationEngine() {
                     placeholder="Ej: Amazon, Uber..."
                     value={merchantName}
                     onChange={(e) => setMerchantName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                    className="w-full bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-2xl py-3.5 px-4 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                   />
                 </div>
 
                 {/* Frecuencia TRX */}
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-3">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-white mb-3">
                     Frecuencia (Últimas 24h)
                   </label>
                   <input
@@ -477,42 +478,51 @@ export default function EvaluationEngine() {
                     min="1"
                     placeholder="Transacciones en 24h"
                     value={trxCount24h}
-                    onChange={(e) => setTrxCount24h(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                    onChange={(e) => handleTrxCountChange(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-2xl py-3.5 px-4 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400"
                   />
                 </div>
               </div>
 
               {/* Valor TRX con Validación Cruzada */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-3">
-                  Monto de Transacción
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${amountExceedsLimit ? 'text-red-400' : 'text-slate-400'}`}>$</span>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder={`Límite sugerido: $${suggestedLimit.toLocaleString()} COP`}
-                      value={currentTrxValue}
-                      onChange={(e) => setCurrentTrxValue(e.target.value)}
-                      className={`w-full border rounded-2xl py-3.5 pl-8 pr-4 text-sm font-semibold focus:outline-none focus:ring-2 transition-all placeholder:font-medium
-                        ${amountExceedsLimit 
-                          ? 'bg-red-50 border-red-300 text-red-900 focus:ring-red-500/20 placeholder:text-red-300' 
-                          : 'bg-slate-50 border-slate-200 text-slate-800 focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-slate-400'
-                        }`}
-                    />
-                  </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-end">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-white">
+                    Monto de Transacciones {currentTrxValues.length > 1 ? '(Ráfaga)' : ''}
+                  </label>
                   <select 
                     value={currency} 
                     onChange={(e) => setCurrency(e.target.value as any)}
-                    className="bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-4 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
+                    className="bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-xl py-1.5 px-3 text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
                   >
                     <option value="COP">COP</option>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                   </select>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {currentTrxValues.map((val, idx) => (
+                    <div key={idx} className="relative w-full">
+                      <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-bold ${amountExceedsLimit ? 'text-red-400' : 'text-slate-400'}`}>$</span>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder={currentTrxValues.length > 1 ? `Monto Transacción ${idx + 1}` : `Límite sugerido: $${suggestedLimit.toLocaleString()} COP`}
+                        value={val}
+                        onChange={(e) => {
+                          const newValues = [...currentTrxValues];
+                          newValues[idx] = e.target.value;
+                          setCurrentTrxValues(newValues);
+                        }}
+                        className={`w-full border rounded-2xl py-3.5 pl-8 pr-4 text-sm font-semibold focus:outline-none focus:ring-2 transition-all placeholder:font-medium
+                          ${amountExceedsLimit 
+                            ? 'bg-red-50 dark:bg-red-900/30 border-red-300 dark:border-red-500/30 text-red-900 dark:text-red-400 focus:ring-red-500/20 placeholder:text-red-300 dark:placeholder:text-red-900/50' 
+                            : 'bg-slate-50 dark:bg-navy-800 border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:ring-blue-500/20 focus:border-blue-500 placeholder:text-slate-400 dark:placeholder:text-navy-400'
+                          }`}
+                      />
+                    </div>
+                  ))}
                 </div>
                 
                 <AnimatePresence>
@@ -521,10 +531,10 @@ export default function EvaluationEngine() {
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className="mt-2 flex items-center gap-1.5 text-xs font-bold text-red-500"
+                      className="flex items-center gap-1.5 text-xs font-bold text-red-500"
                     >
                       <AlertTriangle className="w-3.5 h-3.5" />
-                      El monto supera el umbral seguro para una primera operación.
+                      El acumulado de la ráfaga supera el umbral seguro.
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -590,7 +600,7 @@ export default function EvaluationEngine() {
             result.verdict === 'CONTACTAR_CLIENTE' ? 'bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/10' :
             'bg-gradient-to-br from-red-500 to-red-700 shadow-red-500/10'
           }`}>
-            <div className="bg-white/95 backdrop-blur-xl rounded-[calc(1.5rem-4px)] p-8 md:p-12 flex flex-col gap-8 relative overflow-hidden">
+            <div className="bg-white dark:bg-navy-800 rounded-[calc(1.5rem-4px)] p-8 md:p-12 flex flex-col gap-8 relative overflow-hidden">
               
               <div className={`absolute -right-20 -top-20 w-64 h-64 rounded-full opacity-10 blur-3xl ${
                 result.verdict === 'APROBAR_TRX' ? 'bg-emerald-500' :
@@ -614,7 +624,7 @@ export default function EvaluationEngine() {
                     </h2>
                   </div>
                   {result.transactionId && (
-                    <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg w-fit border border-slate-200 mx-auto md:mx-0">
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-xs font-bold text-slate-500 bg-slate-50 dark:bg-navy-800 px-3 py-1.5 rounded-lg w-fit border border-slate-200 dark:border-white/10 mx-auto md:mx-0">
                       <Database className="w-3.5 h-3.5 text-blue-500" />
                       Evaluación guardada en la base de datos
                     </div>
@@ -640,7 +650,7 @@ export default function EvaluationEngine() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center flex-col">
-                      <span className="text-3xl font-black text-slate-800">{result.riskScore}</span>
+                      <span className="text-3xl font-black text-slate-800 dark:text-white">{result.riskScore}</span>
                       <span className="text-[10px] font-bold text-slate-400 uppercase">Score</span>
                     </div>
                   </div>
@@ -648,7 +658,7 @@ export default function EvaluationEngine() {
               </div>
 
               {/* Contexto Histórico — Contacto Previo & Máximo */}
-              <div className="z-10 mt-2 pt-5 border-t border-slate-100/60">
+              <div className="z-10 mt-2 pt-5 border-t border-slate-100 dark:border-white/10/60">
                 <div className="flex flex-wrap gap-3">
                   <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold border ${
                     result.historicalFrequency > 0
@@ -657,7 +667,7 @@ export default function EvaluationEngine() {
                   }`}>
                     <ShieldCheck className="w-4 h-4" />
                     {result.historicalFrequency > 0
-                      ? `Contacto previo ✔ — ${result.historicalFrequency} vez${result.historicalFrequency !== 1 ? 'es' : ''}`
+                      ? `Contacto previo ✔ — ${result.historicalFrequency} ${result.historicalFrequency !== 1 ? 'veces' : 'vez'}`
                       : 'Sin contacto previo'}
                   </div>
 
@@ -685,13 +695,13 @@ export default function EvaluationEngine() {
               </div>
 
               {/* Explicación Humanizada */}
-              <div className="z-10 mt-2 pt-6 border-t border-slate-100/60 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="z-10 mt-2 pt-6 border-t border-slate-100 dark:border-white/10/60 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className={`p-5 rounded-2xl border shadow-sm ${
                   result.verdict === 'APROBAR_TRX' ? 'bg-emerald-50/50 border-emerald-100' :
                   result.verdict === 'CONTACTAR_CLIENTE' ? 'bg-amber-50/50 border-amber-100' :
                   'bg-red-50/50 border-red-100'
                 }`}>
-                  <h4 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
                     <MessageSquareText className={`w-4 h-4 ${
                       result.verdict === 'APROBAR_TRX' ? 'text-emerald-500' :
                       result.verdict === 'CONTACTAR_CLIENTE' ? 'text-amber-500' :
@@ -787,7 +797,7 @@ export default function EvaluationEngine() {
                             { dimension: 'Contacto Previo', actual: result.historicalFrequency > 0 ? 0 : 80, max: 80 },
                             { dimension: 'Canal', actual: 0, max: 25 },
                           ];
-                        })()} cx="50%" cy="50%" outerRadius="72%" animationDuration={1500}>
+                        })()} cx="50%" cy="50%" outerRadius="72%">
                           <PolarGrid stroke="#e2e8f0" />
                           <PolarAngleAxis dataKey="dimension" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 700 }} />
                           <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 8, fill: '#cbd5e1' }} tickCount={4} />
@@ -805,6 +815,39 @@ export default function EvaluationEngine() {
 
                 </div>
               )}
+
+              {/* Feedback del Analista y Nueva Evaluación */}
+              <div className="z-10 mt-6 flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-navy-800/50 rounded-2xl border border-slate-100 dark:border-white/5 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">¿Fue útil este análisis?</span>
+                  <button 
+                    onClick={() => setFeedback('useful')}
+                    className={`p-2.5 rounded-xl transition-all flex items-center gap-2 text-sm font-medium ${feedback === 'useful' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 ring-2 ring-emerald-500/50' : 'bg-white dark:bg-navy-700 hover:bg-slate-100 dark:hover:bg-navy-600 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10'}`}
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                    Útil
+                  </button>
+                  <button 
+                    onClick={() => setFeedback('not_useful')}
+                    className={`p-2.5 rounded-xl transition-all flex items-center gap-2 text-sm font-medium ${feedback === 'not_useful' ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400 ring-2 ring-red-500/50' : 'bg-white dark:bg-navy-700 hover:bg-slate-100 dark:hover:bg-navy-600 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10'}`}
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                    No útil
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    setResult(null);
+                    setFeedback(null);
+                    setCurrentTrxValues(['']);
+                  }}
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-blue-500/30 w-full md:w-auto"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Nueva Evaluación
+                </button>
+              </div>
 
             </div>
           </div>

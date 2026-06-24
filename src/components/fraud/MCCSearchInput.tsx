@@ -99,19 +99,19 @@ export default function MCCSearchInput({ value, onChange, onUnknownCode }: MCCSe
       )}
 
       {predictiveAlert && (
-        <div className="mt-2 flex items-start gap-2 p-2.5 rounded-xl bg-navy-50 border border-navy-100">
+        <div className="mt-2 flex items-start gap-2 p-2.5 rounded-xl bg-navy-50 border border-navy-100 dark:border-white/10">
           <AlertCircle className="w-4 h-4 text-navy-400 mt-0.5 shrink-0" />
           <p className="text-xs text-navy-500 leading-relaxed">{predictiveAlert}</p>
         </div>
       )}
 
       {isOpen && results.length > 0 && (
-        <div className="absolute z-20 mt-2 w-full bg-white/80 backdrop-blur-2xl rounded-2xl border border-white/60 shadow-soft-xl max-h-48 overflow-y-auto">
+        <div className="absolute z-20 mt-2 w-full bg-white dark:bg-navy-800/80 backdrop-blur-2xl rounded-2xl border border-white/60 shadow-soft-xl max-h-48 overflow-y-auto">
           {results.map(mcc => (
             <button
               key={mcc.code}
               onMouseDown={() => handleSelect(mcc)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left hover:bg-white/50 transition-colors text-navy-700 border-b border-white/20 last:border-0"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left hover:bg-white dark:hover:bg-navy-700 dark:bg-navy-800/50 transition-colors text-navy-700 dark:text-white border-b border-white/20 last:border-0"
             >
               <span className="font-mono text-navy-500">{mcc.code}</span>
               <span className="flex-1">{mcc.description}</span>

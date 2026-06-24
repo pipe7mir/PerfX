@@ -12,27 +12,25 @@ export function useFraudEngine() {
     mcc: MCC
   ): Promise<EvaluationResult> => {
     const triggeredRules: RuleResult[] = evaluate(input, mcc);
-
-    const totalScore = triggeredRules.reduce((sum, r) => sum + r.score, 0);
-    const riskScore = Math.min(100, totalScore);
+    const riskScore = 0; // Se calculará después
 
     const histAvg = input.hasPriorContact && input.priorContactCount > 0
       ? input.priorContactMaxValue / input.priorContactCount
       : input.priorContactMaxValue;
 
-    await storeRecord(mcc.code, input.currentTrxValue, input.transactionType, riskScore);
+    await storeRecord(mcc.code, input.currentTrxValues[0], input.transactionType, riskScore);
     const memory = await computeMemory(mcc.code);
 
     const merchantMemory = memory && memory.totalTransactions > 1 ? memory : undefined;
 
     if (merchantMemory) {
-      const deviation = input.currentTrxValue / (merchantMemory.averageAmount || 1);
+      const deviation = input.currentTrxValues[0] / (merchantMemory.averageAmount || 1);
       if (deviation > 2.5 || deviation < 0.3) {
         triggeredRules.push({
           ruleId: 'merchant-deviation',
           ruleName: 'Desviación Predictiva (Memoria)',
           alertLevel: 'medium',
-          reason: `La TRX actual ($${input.currentTrxValue.toLocaleString()}) se desvía significativamente del comportamiento histórico del comercio (promedio: $${merchantMemory.averageAmount.toLocaleString()})`,
+          reason: `La TRX actual ($${input.currentTrxValues[0].toLocaleString()}) se desvía significativamente del comportamiento histórico del comercio (promedio: $${merchantMemory.averageAmount.toLocaleString()})`,
           score: 15,
         });
       }
@@ -43,7 +41,7 @@ export function useFraudEngine() {
 
     // LÓGICA DE REGLA COMPUESTA SOLICITADA POR EL USUARIO
     const isAmountRuleTriggered = triggeredRules.some(r => r.ruleName.toLowerCase().includes('monto') || r.ruleName.toLowerCase().includes('límite') || r.ruleName.toLowerCase().includes('desviación') || r.ruleName.toLowerCase().includes('histórico'));
-    const isHighAmount = input.currentTrxValue >= 500; // Asumimos un umbral alto
+    const isHighAmount = input.currentTrxValues[0] >= 500; // Asumimos un umbral alto
     const hasManyTrx = input.trxCountLast24h >= 3;
     const isFirstTimeInMerchant = !merchantMemory || merchantMemory.totalTransactions <= 1;
     const isUnknownMcc = mcc.description.toLowerCase().includes('nuevo') || mcc.description.toLowerCase().includes('desconocid') || mcc.code === '0000';
@@ -75,7 +73,7 @@ export function useFraudEngine() {
       triggeredRules,
       historicalAvg: histAvg,
       historicalMax: input.priorContactMaxValue,
-      currentValue: input.currentTrxValue,
+      currentValue: input.currentTrxValues[0],
       currentFrequency: input.trxCountLast24h,
       historicalFrequency: input.hasPriorContact ? input.priorContactCount : 0,
       merchantMemory: merchantMemory ?? undefined,

@@ -44,7 +44,7 @@ export default function MCCPage() {
       <Card>
         <div className="p-6">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-navy-800">Códigos Guardados ({mccs.length})</h3>
+            <h3 className="text-lg font-bold text-navy-800 dark:text-white">Códigos Guardados ({mccs.length})</h3>
             <div className="relative w-full sm:w-72">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-navy-400" />
               <input
@@ -52,7 +52,7 @@ export default function MCCPage() {
                 placeholder="Buscar por código o concepto..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-navy-300 rounded-lg bg-navy-50 text-navy-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-navy-600/50 text-sm"
+                className="w-full pl-10 pr-4 py-2 border border-navy-300 dark:border-white/10 rounded-lg bg-navy-50 dark:bg-navy-900 text-navy-800 dark:text-white focus:outline-none focus:bg-white dark:focus:bg-navy-800 focus:ring-2 focus:ring-navy-600/50 text-sm"
               />
             </div>
           </div>
@@ -61,10 +61,10 @@ export default function MCCPage() {
             {mccs
               .filter(m => m.code.includes(searchQuery) || m.description.toLowerCase().includes(searchQuery.toLowerCase()))
               .map((mcc, idx) => (
-              <div key={mcc.code + idx} className="flex items-center justify-between p-4 rounded-lg border border-navy-200 hover:border-navy-300 hover:shadow-sm transition-all bg-white">
+              <div key={mcc.code + idx} className="flex items-center justify-between p-4 rounded-lg border border-navy-200 dark:border-white/10 hover:border-navy-300 dark:hover:border-white/20 hover:shadow-sm transition-all bg-white dark:bg-navy-800/50">
                 <div className="flex flex-col">
-                  <span className="font-mono font-bold text-navy-600 text-lg">{mcc.code}</span>
-                  <span className="text-sm font-medium text-navy-700 mt-1">{mcc.description}</span>
+                  <span className="font-mono font-bold text-navy-600 dark:text-navy-300 text-lg">{mcc.code}</span>
+                  <span className="text-sm font-medium text-navy-700 dark:text-navy-100 mt-1">{mcc.description}</span>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${
                   mcc.base_risk_score >= 75 ? 'bg-red-100 text-red-700 border border-red-200' :

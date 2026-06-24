@@ -1,6 +1,6 @@
 
 import { NavLink, useLocation } from 'react-router-dom';
-import { Shield, Search, Settings, Users, FileText } from 'lucide-react';
+import { Shield, Search, Settings, Users, FileText, BrainCircuit } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
@@ -11,6 +11,7 @@ export const MobileBottomNav = () => {
     // Definimos los items laterales (ocultos si el rol es guest)
     const leftItems = user?.role === 'guest' ? [] : [
         { to: '/mcc', icon: Search, label: 'MCC' },
+        { to: '/mcc-insights', icon: BrainCircuit, label: 'IA' },
         { to: '/rules', icon: Settings, label: 'Reglas' },
     ];
 
@@ -24,16 +25,16 @@ export const MobileBottomNav = () => {
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
 
             {/* Contenedor principal de la barra */}
-            <div className="relative bg-white shadow-[0_-10px_40px_rgba(11,16,74,0.08)] rounded-t-[2.5rem] px-6 h-20 flex justify-between items-center pb-safe">
+            <div className="relative bg-white dark:bg-navy-800 shadow-[0_-10px_40px_rgba(11,16,74,0.08)] rounded-t-[2.5rem] px-2 sm:px-4 h-20 flex justify-between items-center pb-safe">
 
                 {/* Grupo Izquierdo */}
-                <div className="flex space-x-6">
+                <div className="flex-1 flex justify-evenly items-center h-full max-w-[calc(50%-40px)]">
                     {leftItems.map((item) => {
                         const isActive = location.pathname === item.to;
                         return (
-                            <NavLink key={item.to} to={item.to} className="relative flex flex-col items-center justify-center w-12 group">
+                            <NavLink key={item.to} to={item.to} className="relative flex flex-col items-center justify-center w-full group">
                                 <item.icon
-                                    className={`w-6 h-6 transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400 group-hover:text-slate-600'}`}
+                                    className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400 group-hover:text-slate-600'}`}
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
                                 <span className={`text-[9px] font-bold mt-1 tracking-wider transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400'}`}>
@@ -51,7 +52,7 @@ export const MobileBottomNav = () => {
                 {/* BOTÓN CENTRAL FLOTANTE (El Evaluador) */}
                 <div className="absolute left-1/2 transform -translate-x-1/2 -top-8">
                     {/* El 'bg-slate-50' crea la ilusión del recorte curvo asumiendo que tu app tiene fondo slate-50 */}
-                    <div className="bg-slate-50 p-2 rounded-full">
+                    <div className="bg-slate-50 dark:bg-navy-800 p-2 rounded-full">
                         <NavLink to="/evaluate">
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -68,13 +69,13 @@ export const MobileBottomNav = () => {
                 </div>
 
                 {/* Grupo Derecho */}
-                <div className="flex space-x-6">
+                <div className="flex-1 flex justify-evenly items-center h-full max-w-[calc(50%-40px)]">
                     {rightItems.map((item) => {
                         const isActive = location.pathname === item.to;
                         return (
-                            <NavLink key={item.to} to={item.to} className="relative flex flex-col items-center justify-center w-12 group">
+                            <NavLink key={item.to} to={item.to} className="relative flex flex-col items-center justify-center w-full group">
                                 <item.icon
-                                    className={`w-6 h-6 transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400 group-hover:text-slate-600'}`}
+                                    className={`w-5 h-5 sm:w-6 sm:h-6 transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400 group-hover:text-slate-600'}`}
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
                                 <span className={`text-[9px] font-bold mt-1 tracking-wider transition-colors duration-300 ${isActive ? 'text-navy-900' : 'text-slate-400'}`}>

@@ -85,9 +85,9 @@ function VisualRuleBuilder({ onCancel, onSave }: { onCancel: () => void, onSave:
   const isValid = ruleName.trim() !== '' && conditions.length > 0 && conditions.every(c => c.value !== '');
 
   return (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-slate-50/50 backdrop-blur-xl border border-blue-200/50 p-6 rounded-3xl shadow-xl shadow-blue-900/5 mb-8">
+    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-slate-50 dark:bg-navy-800/50 backdrop-blur-xl border border-blue-200/50 p-6 rounded-3xl shadow-xl shadow-blue-900/5 mb-8">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+        <h3 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2">
           <GitBranch className="w-5 h-5 text-blue-500" /> Constructor Visual de Reglas
         </h3>
         <button onClick={onCancel} className="p-2 hover:bg-slate-200 rounded-full transition-colors"><X className="w-4 h-4 text-slate-500" /></button>
@@ -95,18 +95,18 @@ function VisualRuleBuilder({ onCancel, onSave }: { onCancel: () => void, onSave:
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nombre de la Regla</label>
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Nombre de la Regla</label>
           <input 
             type="text" 
             placeholder="Ej: ALTO_MONTO_MADRUGADA"
             value={ruleName}
             onChange={e => setRuleName(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full bg-white dark:bg-navy-900 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3 text-sm font-semibold dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Impacto en Score ({scoreWeight})</label>
-          <div className="flex items-center gap-4 h-[42px] bg-white border border-slate-200 rounded-xl px-4">
+          <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Impacto en Score ({scoreWeight})</label>
+          <div className="flex items-center gap-4 h-[42px] bg-white dark:bg-navy-900 border border-slate-200 dark:border-white/10 rounded-xl px-4">
             <input 
               type="range" min="1" max="100" 
               value={scoreWeight} 
@@ -120,11 +120,11 @@ function VisualRuleBuilder({ onCancel, onSave }: { onCancel: () => void, onSave:
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+      <div className="bg-white dark:bg-navy-900 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <span className="text-xs font-bold text-slate-600 uppercase">Operador Lógico Base:</span>
-            <div className="flex bg-slate-100 p-1 rounded-lg">
+            <div className="flex bg-slate-100 dark:bg-navy-800 p-1 rounded-lg">
               <button onClick={() => setLogicalOp('AND')} className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${logicalOp === 'AND' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}>Y (AND)</button>
               <button onClick={() => setLogicalOp('OR')} className={`px-3 py-1 text-xs font-bold rounded-md transition-colors ${logicalOp === 'OR' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}>O (OR)</button>
             </div>
@@ -137,7 +137,7 @@ function VisualRuleBuilder({ onCancel, onSave }: { onCancel: () => void, onSave:
         <div className="space-y-3">
           <AnimatePresence>
             {conditions.length === 0 && (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-400 font-medium text-center py-6 border-2 border-dashed border-slate-100 rounded-xl">
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-slate-400 font-medium text-center py-6 border-2 border-dashed border-slate-100 dark:border-white/10 rounded-xl">
                 Añade condiciones para evaluar esta regla
               </motion.p>
             )}
@@ -145,14 +145,14 @@ function VisualRuleBuilder({ onCancel, onSave }: { onCancel: () => void, onSave:
               <motion.div 
                 key={c.id} 
                 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="flex flex-wrap md:flex-nowrap items-center gap-2 bg-slate-50 border border-slate-100 p-2 rounded-xl group relative"
+                className="flex flex-wrap md:flex-nowrap items-center gap-2 bg-slate-50 dark:bg-navy-800 border border-slate-100 dark:border-white/10 p-2 rounded-xl group relative"
               >
                 {idx > 0 && (
                   <div className="absolute -left-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 hidden md:block">
                     {logicalOp}
                   </div>
                 )}
-                <select value={c.field} onChange={e => updateCondition(c.id, 'field', e.target.value)} className="bg-white border border-slate-200 text-sm font-semibold text-slate-700 py-2 px-3 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:outline-none flex-1 md:flex-none md:w-48">
+                <select value={c.field} onChange={e => updateCondition(c.id, 'field', e.target.value)} className="bg-white dark:bg-navy-900 dark:text-white border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-700 py-2 px-3 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:outline-none flex-1 md:flex-none md:w-48">
                   {FIELD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
                 
@@ -165,7 +165,7 @@ function VisualRuleBuilder({ onCancel, onSave }: { onCancel: () => void, onSave:
                   placeholder="Valor a evaluar..."
                   value={c.value}
                   onChange={e => updateCondition(c.id, 'value', e.target.value)}
-                  className="bg-white border border-slate-200 text-sm font-semibold text-slate-700 py-2 px-3 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:outline-none flex-1 min-w-[150px]"
+                  className="bg-white dark:bg-navy-900 dark:text-white border border-slate-200 dark:border-white/10 text-sm font-semibold text-slate-700 py-2 px-3 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:outline-none flex-1 min-w-[150px]"
                 />
                 
                 <button onClick={() => removeCondition(c.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
@@ -199,10 +199,10 @@ export default function RulesPanel() {
   const { rules, updateRule, toggleRule, resetRules, addRule, deleteRule } = useRules();
   const [showBuilder, setShowBuilder] = useState(false);
 
-  // Hook estético: Generar una semilla aleatoria persistente por regla para el mockup de métricas
+  // En producción, esto debería venir del backend (métricas reales)
   const ruleMetrics = useMemo(() => {
     const metrics: Record<string, number> = {};
-    rules.forEach(r => metrics[r.id] = Math.floor(Math.random() * 25));
+    rules.forEach(r => metrics[r.id] = 0); // Reemplazado mockup aleatorio por 0 real hasta conectar stats
     return metrics;
   }, [rules.length]);
 
@@ -230,7 +230,7 @@ export default function RulesPanel() {
             <Plus className="w-4 h-4" />
             Nueva Regla
           </button>
-          <button onClick={resetRules} className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-600 text-sm font-bold px-4 py-2 rounded-xl transition-all shadow-sm">
+          <button onClick={resetRules} className="flex items-center gap-2 bg-white dark:bg-navy-800 hover:bg-slate-50 dark:hover:bg-navy-700 dark:bg-navy-800 border border-slate-200 dark:border-white/10 text-slate-600 text-sm font-bold px-4 py-2 rounded-xl transition-all shadow-sm">
             <RotateCcw className="w-4 h-4" />
             Restaurar
           </button>
@@ -250,7 +250,7 @@ export default function RulesPanel() {
           const isHighRisk = rule.weight >= 50;
 
           return (
-            <Card key={rule.id} hover className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden relative group">
+            <Card key={rule.id} hover className="border border-slate-100 dark:border-white/10 shadow-sm rounded-3xl overflow-hidden relative group">
               {/* Badge Visual en Esquina */}
               <div className="absolute top-4 right-4 flex items-center gap-3">
                 <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
@@ -278,7 +278,7 @@ export default function RulesPanel() {
                 </div>
 
                 {rule.enabled && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 p-5 bg-slate-50/50 rounded-2xl border border-slate-100">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 p-5 bg-slate-50/50 dark:bg-navy-900/50 rounded-2xl border border-slate-100 dark:border-white/10">
                     
                     {rule.condition ? (
                       <div className="md:col-span-2">
@@ -293,7 +293,7 @@ export default function RulesPanel() {
                       </div>
                     ) : (
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">{config.label}</label>
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">{config.label}</label>
                         <input
                           type="number" min="0" step="0.1"
                           value={String(rule.threshold)}
@@ -301,7 +301,7 @@ export default function RulesPanel() {
                             const val = parseFloat(e.target.value);
                             if (!isNaN(val) && val >= 0) updateRule(rule.id, { threshold: val });
                           }}
-                          className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-3 text-sm font-semibold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                          className="w-full bg-white dark:bg-navy-800 dark:text-white border border-slate-200 dark:border-white/10 rounded-xl py-2.5 px-3 text-sm font-semibold focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                         />
                       </div>
                     )}
@@ -313,7 +313,7 @@ export default function RulesPanel() {
                           {rule.weight}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 h-[42px] bg-white border border-slate-200 rounded-xl px-4">
+                      <div className="flex items-center gap-4 h-[42px] bg-white dark:bg-navy-800 border border-slate-200 dark:border-white/10 rounded-xl px-4">
                         <input 
                           type="range" min="0" max="100" 
                           value={rule.weight} 
@@ -332,7 +332,7 @@ export default function RulesPanel() {
                 )}
                 
                 {rule.id.startsWith('custom-') && (
-                  <div className="flex justify-end pt-2 border-t border-slate-100 mt-4">
+                  <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-white/10 mt-4">
                     <button onClick={() => deleteRule(rule.id)} className="flex items-center gap-2 text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors">
                       <Trash2 className="w-3.5 h-3.5" /> Eliminar Regla
                     </button>

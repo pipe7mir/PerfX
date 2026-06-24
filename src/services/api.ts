@@ -86,6 +86,40 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function encryptPassword(password: string): Promise<string> {
+  try {
+    const res = await fetch(`${GATEWAY_URL}/api/v1/auth/public-key`);
+    if (!res.ok) return password;
+    const { publicKey } = await res.json();
+
+    const pemHeader = "-----BEGIN PUBLIC KEY-----";
+    const pemFooter = "-----END PUBLIC KEY-----";
+    const pemContents = publicKey.substring(pemHeader.length, publicKey.length - pemFooter.length - 1).replace(/\s/g, '');
+    const binaryDerString = window.atob(pemContents);
+    const binaryDer = new Uint8Array(binaryDerString.length);
+    for (let i = 0; i < binaryDerString.length; i++) {
+      binaryDer[i] = binaryDerString.charCodeAt(i);
+    }
+
+    const key = await window.crypto.subtle.importKey(
+      "spki",
+      binaryDer.buffer,
+      { name: "RSA-OAEP", hash: "SHA-256" },
+      true,
+      ["encrypt"]
+    );
+
+    const encoded = new TextEncoder().encode(password);
+    const encryptedBuffer = await window.crypto.subtle.encrypt({ name: "RSA-OAEP" }, key, encoded);
+
+    const encryptedBytes = new Uint8Array(encryptedBuffer);
+    return window.btoa(Array.from(encryptedBytes).map(b => String.fromCharCode(b)).join(''));
+  } catch (err) {
+    console.error("Encryption failed, falling back to plaintext");
+    return password;
+  }
+}
+
 export const api = {
   async evaluate(input: EvaluationInput): Promise<EvaluationResult & { transactionId?: string; processingTimeMs?: number }> {
     return request('/api/v1/evaluaciones/evaluar', {
@@ -109,10 +143,11 @@ export const api = {
 
   auth: {
     async login(email: string, password: string): Promise<any> {
+      const encryptedPassword = await encryptPassword(password);
       const response = await fetch(`${GATEWAY_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password: encryptedPassword }),
       });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
@@ -141,10 +176,11 @@ export const api = {
       return data;
     },
     async register(name: string, email: string, password: string): Promise<void> {
+      const encryptedPassword = await encryptPassword(password);
       const response = await fetch(`${GATEWAY_URL}/api/v1/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password: encryptedPassword }),
       });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
@@ -212,6 +248,9 @@ export const api = {
     },
     async findByCode(code: string): Promise<Mcc | null> {
       return request<Mcc | null>(`/api/v1/mcc/${code}`).catch(() => null);
+    },
+    async getInsights(): Promise<any> {
+      return request('/api/v1/mcc/insights');
     }
   },
 

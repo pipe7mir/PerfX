@@ -70,7 +70,7 @@ export const TopNavbar = () => {
                                 exit="exit"
                                 className="absolute right-0 mt-3 w-56 bg-[#0B104A] border border-white/10 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col z-50"
                             >
-                                <div className="px-4 py-3 border-b border-white/5 bg-white/5">
+                                <div className="px-4 py-3 border-b border-white/5 bg-white dark:bg-navy-800/5">
                                     <p className="text-sm font-semibold text-white truncate">{formatName(user?.email)}</p>
                                     <p className="text-[10px] text-emerald-400 font-bold tracking-wider uppercase mt-0.5">{user?.role}</p>
                                 </div>
@@ -79,7 +79,7 @@ export const TopNavbar = () => {
                                     <Link 
                                         to="/profile" 
                                         onClick={() => setIsMenuOpen(false)}
-                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white dark:hover:bg-navy-700 dark:bg-navy-800/5 transition-colors"
                                     >
                                         <UserCircle className="w-4 h-4 text-slate-400" />
                                         Mi Perfil
@@ -87,13 +87,13 @@ export const TopNavbar = () => {
                                     <Link 
                                         to="/settings"
                                         onClick={() => setIsMenuOpen(false)}
-                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-white dark:hover:bg-navy-700 dark:bg-navy-800/5 transition-colors"
                                     >
                                         <Settings className="w-4 h-4 text-slate-400" />
                                         Configuración
                                     </Link>
 
-                                    <div className="h-[1px] bg-white/5 my-1" />
+                                    <div className="h-[1px] bg-white dark:bg-navy-800/5 my-1" />
 
                                     <button
                                         onClick={logout}

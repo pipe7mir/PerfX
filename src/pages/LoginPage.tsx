@@ -173,8 +173,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
-      <div className="w-full max-w-[800px] bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[480px]">
+    <div className="min-h-screen bg-slate-50 dark:bg-navy-800 flex items-center justify-center p-4 font-sans">
+      <div className="w-full max-w-[800px] bg-white dark:bg-navy-800 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[480px]">
 
         {/* Left Panel: Image Cover */}
         <div className="hidden md:block md:w-1/2 relative bg-[#0B104A]">
@@ -184,7 +184,7 @@ export default function LoginPage() {
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute bottom-8 left-8 right-8">
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-white shadow-xl transition-all duration-500">
+            <div className="bg-white dark:bg-navy-800/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-white shadow-xl transition-all duration-500">
               <p className="text-xs font-bold tracking-[0.2em] text-white/80 mb-2 uppercase">Smart Fraud Engine</p>
               <h2 className="text-2xl font-bold leading-tight">
                 {mode === 'REGISTER' ? 'Únete a la plataforma de protección más avanzada.' : 'Control total sobre sus transacciones en tiempo real.'}
@@ -194,7 +194,7 @@ export default function LoginPage() {
         </div>
 
         {/* Right Panel: Dynamic Forms */}
-        <div className="w-full md:w-1/2 p-8 lg:p-10 flex flex-col justify-center relative bg-white">
+        <div className="w-full md:w-1/2 p-8 lg:p-10 flex flex-col justify-center relative bg-white dark:bg-navy-800">
           <div className="mb-8 flex flex-col items-center text-center">
             <PerfxLogo variant="static-dark" className="mb-2" />
             <p className="text-[10px] text-slate-400 mt-1 tracking-widest uppercase font-bold">
@@ -212,13 +212,13 @@ export default function LoginPage() {
                 
                 {lastProfile ? (
                   <div className="flex flex-col items-center justify-center relative pt-4 pb-2">
-                    <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl shadow-slate-200/80 overflow-hidden relative z-10 bg-white mb-5 transition-transform duration-500 hover:scale-[1.02]">
+                    <div className="w-32 h-32 rounded-full border-4 border-white shadow-xl shadow-slate-200/80 overflow-hidden relative z-10 bg-white dark:bg-navy-800 mb-5 transition-transform duration-500 hover:scale-[1.02]">
                       <img src={lastProfile.avatar_url || `https://ui-avatars.com/api/?name=${formatName(lastProfile.email)}&background=0B104A&color=fff&size=250&rounded=true`} alt="Avatar" className="w-full h-full object-cover" />
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-800 tracking-tight text-center relative z-10">
+                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight text-center relative z-10">
                       {formatName(lastProfile.email)}
                     </h3>
-                    <p className="text-[10px] font-bold text-navy-900 uppercase tracking-widest mt-1 mb-6 relative z-10 text-center">
+                    <p className="text-[10px] font-bold text-navy-900 dark:text-white uppercase tracking-widest mt-1 mb-6 relative z-10 text-center">
                       {formatRole(lastProfile.role)}
                     </p>
                     <button
@@ -228,7 +228,7 @@ export default function LoginPage() {
                         setEmail('');
                         localStorage.removeItem('perfx_last_profile');
                       }}
-                      className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-navy-900 transition-colors relative z-10"
+                      className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-navy-900 dark:hover:text-white dark:text-white transition-colors relative z-10"
                     >
                       Iniciar sesión con otra cuenta
                     </button>
@@ -247,7 +247,7 @@ export default function LoginPage() {
                         placeholder="Correo electrónico"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
+                        className="w-full bg-slate-50 dark:bg-navy-800 text-sm font-medium text-slate-800 dark:text-white rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100 dark:border-white/10"
                       />
                     </div>
                   </div>
@@ -268,7 +268,7 @@ export default function LoginPage() {
                       placeholder="••••••••"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-11 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
+                      className="w-full bg-slate-50 dark:bg-navy-800 text-sm font-medium text-slate-800 dark:text-white rounded-2xl pl-11 pr-11 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100 dark:border-white/10"
                     />
                     <button
                       type="button"
@@ -324,7 +324,7 @@ export default function LoginPage() {
                           setEmail('');
                         }
                       }}
-                      className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
+                      className="w-full bg-slate-50 dark:bg-navy-800 text-sm font-medium text-slate-800 dark:text-white rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100 dark:border-white/10"
                     />
                   </div>
                 </div>
@@ -342,7 +342,7 @@ export default function LoginPage() {
                       readOnly
                       placeholder="Se generará automáticamente"
                       value={email ? email.replace('@perfx.io', '') : ''}
-                      className="w-full bg-slate-100 text-sm font-bold font-mono text-slate-800 rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none border border-slate-200 cursor-not-allowed opacity-80"
+                      className="w-full bg-slate-100 dark:bg-navy-800 text-sm font-bold font-mono text-slate-800 dark:text-white rounded-2xl pl-11 pr-4 py-3.5 focus:outline-none border border-slate-200 dark:border-white/10 cursor-not-allowed opacity-80"
                     />
                   </div>
                 </div>
@@ -360,7 +360,7 @@ export default function LoginPage() {
                       placeholder="Mínimo 8 caracteres"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="w-full bg-slate-50 text-sm font-medium text-slate-800 rounded-2xl pl-11 pr-11 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100"
+                      className="w-full bg-slate-50 dark:bg-navy-800 text-sm font-medium text-slate-800 dark:text-white rounded-2xl pl-11 pr-11 py-3.5 focus:outline-none focus:ring-2 focus:ring-[#0B104A]/20 transition-all border border-slate-100 dark:border-white/10"
                     />
                   </div>
                 </div>
@@ -373,7 +373,7 @@ export default function LoginPage() {
                   <button 
                     type="button" 
                     onClick={() => { setMode('LOGIN'); resetForm(); }}
-                    className="text-xs font-bold text-slate-400 hover:text-navy-900 flex items-center gap-1 transition-colors"
+                    className="text-xs font-bold text-slate-400 hover:text-navy-900 dark:hover:text-white dark:text-white flex items-center gap-1 transition-colors"
                   >
                     <ArrowLeft className="w-3 h-3" /> Volver al Login
                   </button>
@@ -399,7 +399,7 @@ export default function LoginPage() {
                   <button 
                     type="button" 
                     onClick={() => { setMode('LOGIN'); resetForm(); }}
-                    className="text-xs font-bold text-slate-400 hover:text-navy-900 flex items-center gap-1 transition-colors"
+                    className="text-xs font-bold text-slate-400 hover:text-navy-900 dark:hover:text-white dark:text-white flex items-center gap-1 transition-colors"
                   >
                     <ArrowLeft className="w-3 h-3" /> Cancelar
                   </button>

@@ -29,13 +29,13 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       <div
         ref={contentRef}
         tabIndex={-1}
-        className="relative bg-white/70 backdrop-blur-2xl border border-white/60 rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto p-6 shadow-soft-xl animate-[fadeIn_0.3s_ease-out,scaleIn_0.3s_ease-out]"
+        className="relative bg-white dark:bg-navy-800/70 backdrop-blur-2xl border border-white/60 rounded-3xl w-full max-w-md max-h-[85vh] overflow-y-auto p-6 shadow-soft-xl animate-[fadeIn_0.3s_ease-out,scaleIn_0.3s_ease-out]"
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-navy-800">{title}</h2>
+          <h2 className="text-lg font-semibold text-navy-800 dark:text-white">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-navy-50 text-navy-400 hover:text-navy-600 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-navy-50 dark:hover:bg-navy-700 text-navy-400 hover:text-navy-600 transition-colors"
             aria-label="Cerrar"
           >
             <X className="w-5 h-5" />

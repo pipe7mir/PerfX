@@ -78,9 +78,9 @@ export default function ResultsDashboard({ result }: ResultsDashboardProps) {
         </div>
 
         {/* Textual Explanation Block */}
-        <div className="mt-4 p-4 rounded-xl bg-slate-50/80 border border-slate-100 shadow-inner">
-          <p className="text-sm text-slate-700 leading-relaxed font-medium whitespace-pre-wrap">
-            <strong className="text-slate-900 block mb-1">Análisis Humano:</strong>
+        <div className="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-navy-800/80 border border-slate-100 dark:border-white/10 shadow-inner">
+          <p className="text-sm text-slate-700 dark:text-white leading-relaxed font-medium whitespace-pre-wrap">
+            <strong className="text-slate-900 dark:text-white block mb-1">Análisis Humano:</strong>
             {getHumanExplanation(result)}
           </p>
         </div>
@@ -110,9 +110,9 @@ export default function ResultsDashboard({ result }: ResultsDashboardProps) {
               { label: 'Máximo', value: result.merchantMemory.maxAmount.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }) },
               { label: 'Frecuencia prom.', value: `${result.merchantMemory.frequencyAvg.toFixed(1)}/día` },
             ].map(stat => (
-              <div key={stat.label} className="p-3 rounded-2xl bg-white/40 border border-white/60 backdrop-blur-md shadow-inner">
+              <div key={stat.label} className="p-3 rounded-2xl bg-white dark:bg-navy-800/40 border border-white/60 backdrop-blur-md shadow-inner">
                 <p className="text-[10px] text-navy-500 font-medium uppercase tracking-wider">{stat.label}</p>
-                <p className="text-sm font-bold text-navy-800 mt-0.5">{stat.value}</p>
+                <p className="text-sm font-bold text-navy-800 dark:text-white mt-0.5">{stat.value}</p>
               </div>
             ))}
           </div>
@@ -121,16 +121,16 @@ export default function ResultsDashboard({ result }: ResultsDashboardProps) {
 
       {result.triggeredRules.length > 0 && (
         <Card>
-          <h3 className="text-sm font-semibold text-navy-700 mb-4">Reglas Disparadas</h3>
+          <h3 className="text-sm font-semibold text-navy-700 dark:text-white mb-4">Reglas Disparadas</h3>
           <div className="space-y-2.5">
             {result.triggeredRules.map(rule => (
-              <div key={rule.ruleId} className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/50 border border-white/60 backdrop-blur-sm shadow-soft-sm hover:scale-[1.01] transition-all duration-300">
+              <div key={rule.ruleId} className="flex items-start gap-3 p-3.5 rounded-2xl bg-white dark:bg-navy-800/50 border border-white/60 backdrop-blur-sm shadow-soft-sm hover:scale-[1.01] transition-all duration-300">
                 <Badge variant={alertBadgeMap[rule.alertLevel]}>{rule.alertLevel.toUpperCase()}</Badge>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-navy-800">{rule.ruleName}</p>
+                  <p className="text-sm font-semibold text-navy-800 dark:text-white">{rule.ruleName}</p>
                   <p className="text-xs text-navy-500 mt-0.5 leading-relaxed">{rule.reason}</p>
                 </div>
-                <span className="text-xs font-mono font-bold text-navy-400 bg-white/80 px-2 py-0.5 rounded-md border border-white">+{rule.score}</span>
+                <span className="text-xs font-mono font-bold text-navy-400 bg-white dark:bg-navy-800/80 px-2 py-0.5 rounded-md border border-white">+{rule.score}</span>
               </div>
             ))}
           </div>
